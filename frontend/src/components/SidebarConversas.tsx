@@ -5,11 +5,10 @@ export default function SidebarConversas({ alunoId, conversaAtivaId, refreshTrig
   const [conversas, setConversas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Busca a lista de chats assim que o menu carrega
- useEffect(() => {
-    // O "?t=" com o tempo atual garante que a URL é sempre única, destruindo o cache do navegador
-    fetch(`http://localhost:8000/alunos/${alunoId}/conversas?t=${Date.now()}`, {
-      cache: 'no-store' // Força o Next.js a fazer um pedido real ao servidor
+  useEffect(() => {
+    // LINK ATUALIZADO AQUI
+    fetch(`https://tutorai-backend-km0b.onrender.com/alunos/${alunoId}/conversas?t=${Date.now()}`, {
+      cache: 'no-store' 
     })
       .then(res => res.json())
       .then(data => {
@@ -17,11 +16,11 @@ export default function SidebarConversas({ alunoId, conversaAtivaId, refreshTrig
         setLoading(false);
       })
       .catch(err => console.error("Erro ao carregar conversas:", err));
-  }, [alunoId, conversaAtivaId, refreshTrigger]); // <-- Garante que o refreshTrigger está aqui!
+  }, [alunoId, conversaAtivaId, refreshTrigger]); 
+
   return (
     <div className="w-full flex flex-col h-full bg-white">
       
-      {/* Botão de Novo Chat */}
       <button 
         onClick={aoCriarNovoChat}
         className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 py-3 rounded-xl font-semibold transition-colors mb-6 shadow-sm"
@@ -32,7 +31,6 @@ export default function SidebarConversas({ alunoId, conversaAtivaId, refreshTrig
         Novo Chat
       </button>
 
-      {/* Lista de Histórico */}
       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">Histórico de Estudos</h3>
       
       <div className="flex-1 overflow-y-auto space-y-2 pr-1">

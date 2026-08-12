@@ -13,7 +13,6 @@ interface Mensagem {
   conteudo: string;
 }
 
-// 1. ADICIONAMOS A PROP 'onPrimeiraMensagem' AQUI
 interface ChatTutorProps {
   conversaId: number;
   onNovaAvaliacao: () => void;
@@ -31,8 +30,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    // 2. A PORTA LÓGICA: Verifica se é o primeiro envio antes de atualizarmos a tela
-    // (Pode ser 0 se veio do banco vazio, ou 1 por causa da saudação padrão)
     const ehPrimeiraMensagem = mensagens.length <= 1;
 
     const textoDigitado = input;
@@ -43,7 +40,8 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/chat/", {
+      // LINK ATUALIZADO AQUI
+      const response = await fetch("https://tutorai-backend-km0b.onrender.com/chat/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -79,11 +77,11 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
 
       onNovaAvaliacao();
 
-      // 3. O GATILHO DO TÍTULO: Se for a primeira mensagem, chama o backend
       if (ehPrimeiraMensagem) {
-        fetch(`http://localhost:8000/conversas/${conversaId}/gerar-titulo`, { method: "PUT" })
+        // LINK ATUALIZADO AQUI
+        fetch(`https://tutorai-backend-km0b.onrender.com/conversas/${conversaId}/gerar-titulo`, { method: "PUT" })
           .then(() => {
-            if (onPrimeiraMensagem) onPrimeiraMensagem(); // Avisa a Sidebar para piscar/atualizar
+            if (onPrimeiraMensagem) onPrimeiraMensagem(); 
           })
           .catch(err => console.error("Erro ao gerar título automático:", err));
       }
@@ -113,7 +111,8 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
     async function buscarHistorico() {
       setMensagens([]); 
       try {
-        const res = await fetch(`http://localhost:8000/conversas/${conversaId}/mensagens`);
+        // LINK ATUALIZADO AQUI
+        const res = await fetch(`https://tutorai-backend-km0b.onrender.com/conversas/${conversaId}/mensagens`);
         if (res.ok) {
           const dados = await res.json();
           const mensagensFormatadas = dados.map((m: any) => ({
@@ -121,7 +120,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
             conteudo: m.conteudo
           }));
           
-          // Se o banco trouxer mensagens, usa elas. Se não, volta a saudação padrão.
           if (mensagensFormatadas.length > 0) {
             setMensagens(mensagensFormatadas);
           } else {
@@ -157,14 +155,14 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
               {msg.role === "user" ? (
                 msg.conteudo
               ) : (
-                <div className="prose prose-sm max-w-none text-gray-800 break-words">
-  <ReactMarkdown
-    remarkPlugins={[remarkMath, remarkGfm]}
-    rehypePlugins={[rehypeKatex]}
-  >
-    {msg.conteudo}
-  </ReactMarkdown>
-</div>
+                <div className="prose prose-sm max-w-none text-gray-800 wrap-break-word">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkMath, remarkGfm]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {msg.conteudo}
+                  </ReactMarkdown>
+                </div>
               )}
             </div>
           </div>
