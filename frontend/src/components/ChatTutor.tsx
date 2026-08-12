@@ -147,11 +147,14 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
   }, [conversaId]);
 
   return (
-    <div className="bg-white flex flex-col h-full w-full rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    // Trocamos o h-full por h-[600px] para travar o tamanho da caixa
+    <div className="bg-white flex flex-col h-[600px] w-full rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      
       <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
         <h2 className="text-white font-semibold">Tutor Interativo</h2>
       </div>
 
+      {/* Como a caixa de cima agora tem um limite, esta div aqui vai criar a rolagem interna! */}
       <div className="flex-1 p-6 overflow-y-auto bg-gray-50 flex flex-col gap-4">
         {mensagens.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
