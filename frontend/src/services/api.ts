@@ -1,6 +1,8 @@
 import { MetricaProgresso } from '../types';
 
-const API_URL = 'http://localhost:8000';
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+});
 
 export async function getMetricasAluno(alunoId: number): Promise<MetricaProgresso[]> {
   const resposta = await fetch(`${API_URL}/alunos/${alunoId}/metricas`);
