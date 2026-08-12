@@ -2,7 +2,8 @@ import axios from 'axios';
 import { MetricaProgresso } from '../types';
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  // Colocando o link direto para ignorar o erro da Vercel
+  baseURL: 'https://tutorai-backend-km0b.onrender.com',
 });
 
 export async function getMetricasAluno(alunoId: number): Promise<MetricaProgresso[]> {
