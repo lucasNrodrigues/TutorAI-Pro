@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '@/services/api'; // <--- Importando a nossa API configurada
+
 import DashboardProgresso from '@/components/DashboardProgresso';
 import ChatTutor from '@/components/ChatTutor';
 import ModalPerfil from '@/components/ModalPerfil';
@@ -9,7 +11,6 @@ import DashboardProfessor from '@/components/DashboardProfessor';
 import BarraXP from '@/components/BarraXP';
 import SidebarConversas from '@/components/SidebarConversas';
 
-// 1. ATUALIZAMOS A INTERFACE PARA RECEBER O CARGO E EMAIL
 interface Usuario {
   aluno_id: number;
   conversa_id: number;
@@ -18,7 +19,7 @@ interface Usuario {
   cargo: string;
   disciplina: string;
   foto_url?: string;
-  bio?: string; // <-- ADICIONE ISSO AQUI
+  bio?: string;
   xp: number;
   nivel: number;
 }
@@ -41,24 +42,39 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Adicione este estado novo para controlar o chat atual
   const [conversaAtiva, setConversaAtiva] = useState<number | null>(null);
-
-  // ADICIONE ESTA LINHA AQUI, JUNTO COM OS OUTROS ESTADOS:
   const [refreshSidebar, setRefreshSidebar] = useState(0);
 
+  // 1. RECUPERA A SESSÃO SALVA AO ABRIR O SITE
+  useEffect(() => {
+    const sessaoSalva = localStorage.getItem('@TutorAI:user');
+    if (sessaoSalva) {
+      setUsuarioLogado(JSON.parse(sessaoSalva));
+    }
+  }, []);
+
+  // 2. FUNÇÃO CENTRALIZADA DE LOGOUT
+  function handleLogout() {
+    setUsuarioLogado(null);
+    localStorage.removeItem('@TutorAI:user');
+  }
+
+  // 3. FUNÇÃO CENTRALIZADA PARA ATUALIZAR PERFIL E SESSÃO
+  function handleAtualizarPerfil(novosDados: any) {
+    if (!usuarioLogado) return;
+    const usuarioAtualizado = { ...usuarioLogado, ...novosDados };
+    setUsuarioLogado(usuarioAtualizado);
+    localStorage.setItem('@TutorAI:user', JSON.stringify(usuarioAtualizado));
+  }
+
+  // 4. REFATORAÇÃO: USANDO AXIOS PARA CRIAR CHAT
   async function criarNovoChat() {
     try {
-      const res = await fetch("http://localhost:8000/conversas/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          aluno_id: usuarioLogado?.aluno_id, 
-          contexto_disciplina: usuarioLogado?.disciplina 
-        })
+      const res = await api.post("/conversas/", {
+        aluno_id: usuarioLogado?.aluno_id, 
+        contexto_disciplina: usuarioLogado?.disciplina 
       });
-      const data = await res.json();
-      setConversaAtiva(data.id); // Muda o foco para a nova conversa
+      setConversaAtiva(res.data.id);
     } catch (error) {
       console.error("Erro ao criar novo chat", error);
     }
@@ -68,46 +84,39 @@ export default function Home() {
     setTimeout(() => setRefreshTrigger((prev) => prev + 1), 3000);
   }
 
-
+  // 5. REFATORAÇÃO: USANDO AXIOS NO LOGIN/CADASTRO E SALVANDO SESSÃO
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErro("");
     setSucesso("");
     setLoading(true);
 
-    const url = isLogin ? "http://localhost:8000/login/" : "http://localhost:8000/cadastro/";
+    const url = isLogin ? "/login/" : "/cadastro/";
     const body = isLogin 
-      ? JSON.stringify({ email, senha })
-      : JSON.stringify({ nome, email, senha });
+      ? { email, senha }
+      : { nome, email, senha };
 
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Ocorreu um erro na requisição.");
-      }
+      const res = await api.post(url, body);
+      const data = res.data;
 
       if (isLogin) {
         setUsuarioLogado(data);
+        localStorage.setItem('@TutorAI:user', JSON.stringify(data)); // Salva no navegador!
       } else {
         setSucesso("Cadastro realizado! Agora você pode fazer o login.");
         setIsLogin(true);
         setSenha("");
       }
     } catch (error: any) {
-      setErro(error.message);
+      // O Axios guarda a resposta de erro do servidor dentro de error.response.data
+      const mensagemErro = error.response?.data?.detail || "Ocorreu um erro na requisição.";
+      setErro(mensagemErro);
     } finally {
       setLoading(false);
     }
   }
 
-  // TELA DE LOGIN / CADASTRO
   if (!usuarioLogado) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -176,27 +185,21 @@ export default function Home() {
     );
   }
 
- // TELA PRINCIPAL LOGADO
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col items-center py-4 sm:py-8 px-2 sm:px-4 lg:px-8 overflow-x-hidden w-full">
       
-      {/* Cabeçalho Organizado Responsivo (SaaS Style) */}
       <header className="w-full max-w-360 mb-8 flex flex-col md:flex-row gap-6 justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center md:text-left">
-        
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{NOME_DO_SITE}</h1>
           <p className="text-gray-500 text-sm">
             {usuarioLogado.cargo === "professor" ? "Painel Administrativo" : `Disciplina ativa: ${usuarioLogado.disciplina}`}
           </p>
-          {/* Mostra a bio do utilizador no painel principal! */}
           {usuarioLogado.bio && (
             <p className="text-gray-400 text-xs mt-1 italic">"{usuarioLogado.bio}"</p>
           )}
         </div>
   
-        {/* Container da Direita: Empilha no celular (sm), alinha lado a lado no PC */}
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto justify-center md:justify-end">
-          {/* A mágica visual acontece aqui */}
           {usuarioLogado.cargo === "aluno" && (
             <BarraXP nivel={usuarioLogado.nivel} xpAtual={usuarioLogado.xp} />
           )}
@@ -205,23 +208,15 @@ export default function Home() {
             nome={usuarioLogado.nome}
             foto_url={usuarioLogado.foto_url}
             aoClicarEditar={() => setModalAberto(true)}
-            aoSair={() => setUsuarioLogado(null)}
+            aoSair={handleLogout} // <--- Passando a função de logout com limpeza de cache
           />
         </div>
       </header>
       
-     {/* 2. ROTEAMENTO CONDICIONAL (O CORAÇÃO DA FASE 2) */}
       {usuarioLogado.cargo === "professor" ? (
-        
-        // Se for professor, mostra o painel administrativo
         <DashboardProfessor emailProfessor={usuarioLogado.email} />
-        
       ) : (
-        
-        // Se for aluno, mostra o Novo Layout com 3 Colunas!
         <div className="w-full max-w-360 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1 min-h-0">
-          
-          {/* Coluna 1: O Menu Lateral (Ocupa 3 de 12 colunas no desktop) */}
           <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 w-full min-w-0 flex flex-col h-100 lg:h-auto overflow-hidden">
             <SidebarConversas 
               alunoId={usuarioLogado.aluno_id}
@@ -232,7 +227,6 @@ export default function Home() {
             />
           </section>
 
-          {/* Coluna 2: O Chat Tutor (Ocupa 5 de 12 colunas no desktop) */}
           <section className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col min-h-125 lg:min-h-0 w-full min-w-0">
             <ChatTutor 
               conversaId={conversaAtiva || usuarioLogado.conversa_id} 
@@ -241,27 +235,23 @@ export default function Home() {
             />
           </section>
 
-          {/* Coluna 3: O Dashboard (Ocupa 4 de 12 colunas no desktop) */}
           <section className="lg:col-span-4 flex flex-col gap-6 w-full min-w-0 overflow-y-auto">
             <DashboardProgresso 
               alunoId={usuarioLogado.aluno_id} 
               refreshTrigger={refreshTrigger} 
             />
           </section>
-
         </div>
-        
       )}
 
-      {/* Modal de Edição de Perfil */}
       {modalAberto && (
         <ModalPerfil 
           nomeAtual={usuarioLogado.nome} 
-          fotoAtual={usuarioLogado.foto_url} // <- Passando a foto para o modal
-          bioAtual={usuarioLogado.bio}       // <- Passando a bio para o modal
+          fotoAtual={usuarioLogado.foto_url} 
+          bioAtual={usuarioLogado.bio}      
           alunoId={usuarioLogado.aluno_id}
           fechar={() => setModalAberto(false)}
-          aoSalvar={(novosDados: any) => setUsuarioLogado({...usuarioLogado, ...novosDados})} // <- Atualiza nome, bio e foto de uma vez!
+          aoSalvar={handleAtualizarPerfil} // <--- Passando a função que atualiza estado e localStorage
         />
       )}
     </main>
