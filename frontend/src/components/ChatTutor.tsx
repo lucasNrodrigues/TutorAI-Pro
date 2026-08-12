@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// 1. ADICIONE O useRef AQUI NA IMPORTAÇÃO
+import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -26,12 +27,24 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 2. CRIE A REFERÊNCIA INVISÍVEL
+  const mensagensEndRef = useRef<HTMLDivElement>(null);
+
+  // 3. CRIE A FUNÇÃO QUE FORÇA A ROLAGEM SUAVE
+  const scrollToBottom = () => {
+    mensagensEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // 4. ATIVE A ROLAGEM SEMPRE QUE A LISTA DE MENSAGENS MUDAR
+  useEffect(() => {
+    scrollToBottom();
+  }, [mensagens]);
+
   async function enviarMensagem(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
     const ehPrimeiraMensagem = mensagens.length <= 1;
-
     const textoDigitado = input;
     const novaMensagem: Mensagem = { role: "user", conteudo: textoDigitado };
     
@@ -40,7 +53,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
     setLoading(true);
 
     try {
-      // LINK ATUALIZADO AQUI
       const response = await fetch("https://tutorai-backend-km0b.onrender.com/chat/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,7 +90,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
       onNovaAvaliacao();
 
       if (ehPrimeiraMensagem) {
-        // LINK ATUALIZADO AQUI
         fetch(`https://tutorai-backend-km0b.onrender.com/conversas/${conversaId}/gerar-titulo`, { method: "PUT" })
           .then(() => {
             if (onPrimeiraMensagem) onPrimeiraMensagem(); 
@@ -111,7 +122,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
     async function buscarHistorico() {
       setMensagens([]); 
       try {
-        // LINK ATUALIZADO AQUI
         const res = await fetch(`https://tutorai-backend-km0b.onrender.com/conversas/${conversaId}/mensagens`);
         if (res.ok) {
           const dados = await res.json();
@@ -155,7 +165,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
               {msg.role === "user" ? (
                 msg.conteudo
               ) : (
-                <div className="prose prose-sm max-w-none text-gray-800 wrap-break-word">
+                <div className="prose prose-sm max-w-none text-gray-800 break-words">
                   <ReactMarkdown
                     remarkPlugins={[remarkMath, remarkGfm]}
                     rehypePlugins={[rehypeKatex]}
@@ -176,6 +186,9 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
             </div>
           </div>
         )}
+        
+        {/* 5. A ÂNCORA INVISÍVEL NO FINAL DA LISTA DE MENSAGENS */}
+        <div ref={mensagensEndRef} />
       </div>
 
       <form onSubmit={enviarMensagem} className="p-3 sm:p-4 bg-white border-t border-gray-100 flex gap-2">
