@@ -194,19 +194,19 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         <div ref={mensagensEndRef} />
       </div>
 
-      <form onSubmit={enviarMensagem} className="p-3 sm:p-4 bg-white border-t border-gray-100 flex gap-2">
+      <form onSubmit={enviarMensagem} className="p-4 bg-white border-t border-gray-100 flex flex-col gap-3">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Digite sua dúvida..."
-          className="w-full flex-1 min-w-0 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-black text-sm sm:text-base"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-black text-sm sm:text-base shadow-sm"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0 text-sm sm:text-base"
+          className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base shadow-sm uppercase tracking-wide"
         >
           Enviar
         </button>
