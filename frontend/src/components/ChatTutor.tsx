@@ -148,7 +148,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
 
   return (
     // Trocamos o h-full por h-[600px] para travar o tamanho da caixa
-<div className="bg-white flex flex-col h-[calc(100vh-200px)] w-full rounded-xl shadow-sm border border-gray-100 overflow-hidden">      
+<div className="bg-white flex flex-col h-[calc(100dvh-200px)] w-full rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
         <h2 className="text-white font-semibold">Tutor Interativo</h2>
       </div>
@@ -193,8 +193,8 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         <div ref={mensagensEndRef} />
       </div>
 
-      {/* Trocamos p-4 por px-4 pt-4 pb-3 para espremer o fundo */}
-      <form onSubmit={enviarMensagem} className="px-4 pt-4 pb-3 bg-white border-t border-gray-100 flex flex-col gap-3">
+       {/* Trocamos p-4 por px-4 pt-4 pb-3 para espremer o fundo */}
+  <form onSubmit={enviarMensagem} className="shrink-0 px-4 pt-4 pb-3 bg-white border-t border-gray-100 flex flex-col gap-3">
         <input
           type="text"
           value={input}
