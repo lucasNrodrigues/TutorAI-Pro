@@ -216,7 +216,7 @@ export default function Home() {
       {usuarioLogado.cargo === "professor" ? (
         <DashboardProfessor emailProfessor={usuarioLogado.email} />
       ) : (
-        <div className="w-full max-w-360 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1 min-h-0">
+        <div className="w-full max-w-360 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 h-[calc(100dvh-160px)]">
           <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 w-full min-w-0 flex flex-col h-100 lg:h-auto overflow-hidden">
             <SidebarConversas 
               alunoId={usuarioLogado.aluno_id}
@@ -227,7 +227,7 @@ export default function Home() {
             />
           </section>
 
-<section className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden min-h-125 lg:min-h-0 w-full min-w-0 h-full">
+<section className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden min-h-0 w-full">
             <ChatTutor 
               conversaId={conversaAtiva || usuarioLogado.conversa_id} 
               onNovaAvaliacao={handleNovaMensagem} 
