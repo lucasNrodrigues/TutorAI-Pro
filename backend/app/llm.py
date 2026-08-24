@@ -64,7 +64,7 @@ def avaliar_progresso_silencioso(contexto_disciplina: str, mensagem_aluno: str, 
     ]
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=mensagens_api,
         temperature=0.1, # Temperatura bem baixa para focar em precisão e não em criatividade
         response_format={"type": "json_object"} # Força a saída ser um JSON
