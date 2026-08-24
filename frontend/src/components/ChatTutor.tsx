@@ -148,8 +148,8 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
 
   return (
     // Trocamos o h-full por h-[600px] para travar o tamanho da caixa
-<div className="bg-white flex flex-col h-[calc(100dvh-200px)] w-full rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+<div className="flex flex-col flex-1 h-full w-full overflow-hidden">
+   <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
         <h2 className="text-white font-semibold">Tutor Interativo</h2>
       </div>
 
