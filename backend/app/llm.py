@@ -31,7 +31,7 @@ def gerar_resposta_pedagogica_stream(contexto_disciplina: str, historico_mensage
 
     # O segredo aqui é o stream=True
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=mensagens_api,
         temperature=0.4,
         max_tokens=1024,

@@ -455,7 +455,7 @@ def gerar_titulo_inteligente(conversa_id: int, db: Session = Depends(get_db)):
     try:
         # Usa o 'client' global da Groq que já está instanciado no seu arquivo
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[
                 {
                     "role": "user",
