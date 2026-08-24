@@ -227,7 +227,7 @@ export default function Home() {
             />
           </section>
 
-          <section className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden min-h-125 lg:min-h-0 w-full min-w-0">
+<section className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden min-h-125 lg:min-h-0 w-full min-w-0 h-[calc(100dvh-200px)]">
             <ChatTutor 
               conversaId={conversaAtiva || usuarioLogado.conversa_id} 
               onNovaAvaliacao={handleNovaMensagem} 
