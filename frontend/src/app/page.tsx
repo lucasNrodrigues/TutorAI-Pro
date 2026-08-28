@@ -186,10 +186,41 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col items-center py-4 sm:py-6 px-4 sm:px-6 lg:px-8 w-full font-sans">
-      
+<main className="
+  min-h-screen
+  bg-slate-50
+  flex
+  flex-col
+  items-center
+  py-4
+  px-4
+  lg:px-6
+  w-full
+  font-sans
+">      
       {/* HEADER: Ajustado para max-w-[1600px] e mx-auto para centralizar perfeitamente */}
-      <header className="w-full max-w-[1600px] mx-auto mb-4 lg:mb-6 flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-slate-200 text-center md:text-left z-20">
+<header className="
+  w-full
+  max-w-[1600px]
+  mx-auto
+  mb-5
+  flex
+  flex-col
+  md:flex-row
+  gap-4
+  justify-between
+  items-center
+  bg-white
+  px-6
+  py-4
+  rounded-2xl
+  shadow-sm
+  border
+  border-slate-200
+  text-center
+  md:text-left
+  z-20
+">
         <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
           {!menuMobileAberto && (
             <button onClick={() => setMenuMobileAberto(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
@@ -225,8 +256,21 @@ export default function Home() {
         <DashboardProfessor emailProfessor={usuarioLogado.email} />
       ) : (
         /* GRID PRINCIPAL: max-w-[1600px] e mx-auto para ocupar o monitor do notebook sem colar na esquerda */
-        <div className="w-full max-w-[1600px] mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 h-auto lg:h-[calc(100vh-130px)] relative">
-          
+
+        <div className="
+  w-full
+  max-w-[1600px]
+  mx-auto
+  grid
+  grid-cols-1
+  lg:grid-cols-[280px_minmax(0,1fr)_360px]
+  gap-5
+  h-auto
+  lg:h-[calc(100vh-150px)]
+  min-h-0
+  relative
+">
+
           {/* Overlay escuro Mobile */}
           {menuMobileAberto && (
             <div 
@@ -236,12 +280,33 @@ export default function Home() {
           )}
 
           {/* Sidebar Conversas */}
-          <section className={`
-            fixed inset-y-0 left-0 z-50 w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out 
-            lg:relative lg:w-full lg:col-span-3 lg:shadow-sm lg:transform-none lg:flex lg:rounded-2xl lg:border border-slate-200
-            ${menuMobileAberto ? "translate-x-0" : "-translate-x-full"}
-            flex flex-col h-full overflow-hidden
-          `}>
+          <section
+  className={`
+    fixed inset-y-0 left-0 z-50
+    w-[300px]
+    bg-white
+    shadow-2xl
+    transition-transform duration-300 ease-in-out
+
+    ${menuMobileAberto
+      ? "translate-x-0"
+      : "-translate-x-full"
+    }
+
+    lg:static
+    lg:translate-x-0
+    lg:w-full
+    lg:h-full
+    lg:shadow-sm
+    lg:rounded-2xl
+    lg:border
+    lg:border-slate-200
+
+    flex
+    flex-col
+    overflow-hidden
+  `}
+>
             <div className="flex justify-between items-center p-4 lg:hidden bg-slate-50 border-b border-slate-200">
               <span className="font-bold text-slate-700">Menu</span>
               <button onClick={() => setMenuMobileAberto(false)} className="p-2 text-slate-500 hover:bg-slate-200 rounded-xl transition-colors">
@@ -262,17 +327,51 @@ export default function Home() {
             />
           </section>
 
-          {/* Área do Chat */}
-          <section className="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-[75vh] lg:h-full w-full relative z-10">
-            <ChatTutor 
-              conversaId={conversaAtiva || usuarioLogado.conversa_id} 
-              onNovaAvaliacao={handleNovaMensagem} 
-              onPrimeiraMensagem={() => setRefreshSidebar(prev => prev + 1)} 
-            />
-          </section>
+          <section
+  className="
+    bg-white
+    rounded-2xl
+    shadow-sm
+    border
+    border-slate-200
+    flex
+    flex-col
+    overflow-hidden
+    h-[75vh]
+    lg:h-full
+    min-h-0
+    min-w-0
+    w-full
+    relative
+    z-10
+  "
+>
+  <ChatTutor
+    conversaId={
+      conversaAtiva || usuarioLogado.conversa_id
+    }
+    onNovaAvaliacao={handleNovaMensagem}
+    onPrimeiraMensagem={() =>
+      setRefreshSidebar(prev => prev + 1)
+    }
+  />
+</section>
 
           {/* Dashboard de Progresso */}
-          <section className="lg:col-span-4 flex flex-col w-full min-w-0 overflow-y-auto mb-6 lg:mb-0 lg:h-full">
+
+<section
+  className="
+    flex
+    flex-col
+    w-full
+    min-w-0
+    min-h-0
+    overflow-y-auto
+    mb-6
+    lg:mb-0
+    lg:h-full
+  "
+>
             <DashboardProgresso 
               alunoId={usuarioLogado.aluno_id} 
               refreshTrigger={refreshTrigger} 
