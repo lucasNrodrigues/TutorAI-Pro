@@ -6,7 +6,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
-import { Send, Bot, Sparkles } from 'lucide-react'; // <-- Novos ícones adicionados
+import { Send, Bot, Sparkles, BookOpen, Terminal } from 'lucide-react'; // <-- Novos ícones para os modos
 import 'katex/dist/katex.min.css';
 
 interface Mensagem {
@@ -22,10 +22,13 @@ interface ChatTutorProps {
 
 export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensagem }: ChatTutorProps) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([
-    { role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Em que conceito de lógica você está com dúvida hoje?" }
+    { role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Escolha um modo de estudo acima e me diga qual é a sua dúvida de lógica hoje!" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // NOVO: Estado para controlar o modo de estudo
+  const [modo, setModo] = useState("tutor"); 
 
   const mensagensEndRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +60,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           conversa_id: conversaId,
           role: "user",
           conteudo: textoDigitado, 
+          modo_estudo: modo // <-- Enviando o modo para o seu backend FastAPI
         }),
       });
 
@@ -126,7 +130,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           if (mensagensFormatadas.length > 0) {
             setMensagens(mensagensFormatadas);
           } else {
-            setMensagens([{ role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Em que conceito de lógica você está com dúvida hoje?" }]);
+            setMensagens([{ role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Escolha um modo de estudo acima e me diga qual é a sua dúvida de lógica hoje!" }]);
           }
         }
       } catch (error) {
@@ -138,10 +142,9 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
   }, [conversaId]);
 
   return (
-    // Fundo slate-50 (seu #F8FAFC) aplicado na div principal
     <div className="flex flex-col flex-1 h-full w-full bg-slate-50 overflow-hidden font-sans">
       
-      {/* Cabeçalho Minimalista e Branco */}
+      {/* Cabeçalho Minimalista */}
       <div className="bg-white px-6 py-4 flex items-center justify-between border-b border-slate-200 z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 border border-blue-100">
@@ -156,21 +159,39 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         </div>
       </div>
 
-      {/* Área de rolagem com conteúdo centralizado em max-w-3xl */}
+      {/* NOVO: Barra de Seleção de Modos */}
+      <div className="bg-white border-b border-slate-200 px-4 py-3 flex gap-2 overflow-x-auto justify-center z-0 shadow-sm">
+        <button 
+          onClick={() => setModo("tutor")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${modo === "tutor" ? "bg-blue-100 text-blue-700 border border-blue-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
+        >
+          <Bot size={16} /> Modo Tutor
+        </button>
+        <button 
+          onClick={() => setModo("exercicios")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${modo === "exercicios" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
+        >
+          <Terminal size={16} /> Exercícios
+        </button>
+        <button 
+          onClick={() => setModo("revisao")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${modo === "revisao" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
+        >
+          <BookOpen size={16} /> Revisão Rápida
+        </button>
+      </div>
+
+      {/* Área de rolagem de mensagens */}
       <div className="flex-1 overflow-y-auto px-4 py-8 flex flex-col items-center">
         <div className="w-full max-w-3xl flex flex-col gap-8">
           
           {mensagens.map((msg, idx) => (
             <div key={idx} className={`flex gap-4 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              
-              {/* Avatar da IA (Só aparece na mensagem do Assistant) */}
               {msg.role === "assistant" && (
                 <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
                   <Bot size={18} className="text-white" />
                 </div>
               )}
-
-              {/* Balão de Mensagem */}
               <div
                 className={`max-w-[85%] sm:max-w-[75%] px-5 py-4 text-[15px] leading-relaxed overflow-x-auto shadow-sm ${
                   msg.role === "user"
@@ -194,7 +215,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
             </div>
           ))}
 
-          {/* Loading Minimalista (Três pontinhos piscando) */}
           {loading && (
             <div className="flex gap-4 w-full justify-start items-center">
               <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0">
@@ -212,14 +232,14 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         </div>
       </div>
 
-      {/* Input Moderno (Estilo Pílula/Search Bar flutuante) */}
+      {/* Input Moderno */}
       <div className="shrink-0 bg-slate-50 px-4 pt-2 pb-6 flex justify-center border-t border-slate-200/50">
         <form onSubmit={enviarMensagem} className="w-full max-w-3xl relative flex items-center group">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Pergunte ao tutor..."
+            placeholder={`Pergunte ao tutor (Modo ${modo})...`}
             className="w-full bg-white border border-slate-300 rounded-full pl-6 pr-14 py-3.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-800 text-sm sm:text-base shadow-sm transition-all"
             disabled={loading}
           />
@@ -232,7 +252,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           </button>
         </form>
       </div>
-
     </div>
   );
 }
