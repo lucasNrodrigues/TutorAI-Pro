@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { Plus, MessageSquare, History } from 'lucide-react'; // <-- Importando ícones modernos
 
 export default function SidebarConversas({ alunoId, conversaAtivaId, refreshTrigger, aoSelecionarConversa, aoCriarNovoChat }: any) {
   const [conversas, setConversas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // LINK ATUALIZADO AQUI
     fetch(`https://tutorai-backend-km0b.onrender.com/alunos/${alunoId}/conversas?t=${Date.now()}`, {
       cache: 'no-store' 
     })
@@ -19,35 +19,48 @@ export default function SidebarConversas({ alunoId, conversaAtivaId, refreshTrig
   }, [alunoId, conversaAtivaId, refreshTrigger]); 
 
   return (
-    <div className="w-full flex flex-col h-full bg-white">
+    // Coloquei um padding interno p-5 para desgrudar das bordas
+    <div className="w-full flex flex-col h-full bg-white p-5 font-sans">
       
+      {/* Botão de Ação Primária (Sólido e Moderno) */}
       <button 
         onClick={aoCriarNovoChat}
-        className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 py-3 rounded-xl font-semibold transition-colors mb-6 shadow-sm"
+        className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 py-3 rounded-xl font-semibold transition-all mb-6 shadow-sm"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-        </svg>
+        <Plus size={18} strokeWidth={2.5} />
         Novo Chat
       </button>
 
-      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">Histórico de Estudos</h3>
+      {/* Título da Seção com Ícone */}
+      <div className="flex items-center gap-2 mb-4 px-1">
+        <History size={16} className="text-slate-400" />
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Histórico de Estudos</h3>
+      </div>
       
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+      {/* Lista de Conversas com espaçamento suave */}
+      <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
         {loading ? (
-          <p className="text-sm text-gray-400 text-center mt-4">Carregando...</p>
+          <div className="flex justify-center py-6">
+             <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : conversas.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center mt-4">Nenhuma sessão salva.</p>
         ) : (
           conversas.map((chat) => (
             <button
               key={chat.id}
               onClick={() => aoSelecionarConversa(chat.id)}
-              className={`w-full text-left px-3 py-3 rounded-lg text-sm truncate transition-colors border ${
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all border ${
                 conversaAtivaId === chat.id 
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md" 
-                  : "bg-gray-50 text-gray-700 border-transparent hover:bg-gray-100"
+                  ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm font-medium" 
+                  : "bg-transparent text-slate-600 border-transparent hover:bg-slate-50"
               }`}
             >
-              <span className="block truncate font-medium">
+              <MessageSquare 
+                size={16} 
+                className={conversaAtivaId === chat.id ? "text-blue-600 shrink-0" : "text-slate-400 shrink-0"} 
+              />
+              <span className="truncate text-left flex-1">
                 {chat.contexto_disciplina || `Sessão #${chat.id}`}
               </span>
             </button>
