@@ -8,6 +8,7 @@ class MensagemBase(BaseModel):
 
 class MensagemCreate(MensagemBase):
     conversa_id: int
+    modo_estudo: Optional[str] = "tutor" # <-- AQUI ESTÁ A MÁGICA!
 
 class MensagemResponse(MensagemBase):
     id: int
@@ -21,6 +22,7 @@ class MetricaResponse(BaseModel):
     erros_consecutivos: int
     class Config:
         from_attributes = True
+
 # --- Schemas para Aluno ---
 class AlunoBase(BaseModel):
     nome: str

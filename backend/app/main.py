@@ -1,4 +1,5 @@
 from typing import List
+from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
