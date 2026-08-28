@@ -73,15 +73,25 @@ export default function Home() {
   }
 
   // 4. REFATORAÇÃO: USANDO AXIOS PARA CRIAR CHAT
-  async function criarNovoChat() {
+  // Modifique a função existente para esta:
+  async function criarNovoChat(topicoFoco?: string) {
     try {
+      // Se clicou no botão revisar, cria um contexto focado. Se não, usa a disciplina normal.
+      const contexto = topicoFoco 
+        ? `Revisão focada em: ${topicoFoco} (Disciplina: ${usuarioLogado?.disciplina})` 
+        : usuarioLogado?.disciplina;
+
       const res = await api.post("/conversas/", {
         aluno_id: usuarioLogado?.aluno_id, 
-        contexto_disciplina: usuarioLogado?.disciplina 
+        contexto_disciplina: contexto 
       });
+      
       setConversaAtiva(res.data.id);
+      setRefreshSidebar(prev => prev + 1); // Força a sidebar lateral a atualizar para mostrar o novo chat
+      setMenuMobileAberto(false); // Se estiver no celular, fecha o menu automaticamente
+      
     } catch (error) {
-      console.error("Erro ao criar novo chat", error);
+      console.error("Erro ao criar novo chat de revisão", error);
     }
   }
 
@@ -295,6 +305,8 @@ export default function Home() {
             <DashboardProgresso 
               alunoId={usuarioLogado.aluno_id} 
               refreshTrigger={refreshTrigger} 
+              // 👇 A MÁGICA ACONTECE AQUI:
+              onRevisarTopico={(topico) => criarNovoChat(topico)}
             />
           </section>
         </div>
