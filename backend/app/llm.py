@@ -69,11 +69,33 @@ def gerar_resposta_pedagogica_stream(contexto_disciplina: str, historico_mensage
     for chunk in response:
         pedaco = chunk.choices[0].delta.content
         if pedaco:
-            yield pedaco
-
+            yield pedacos
 
 def avaliar_progresso_silencioso(contexto_disciplina: str, mensagem_aluno: str, resposta_tutor: str) -> dict:
-    # ... (Seu código original continua igual daqui para baixo)
+    """
+    Analisa a interação e retorna métricas estruturadas em JSON.
+    """
     system_prompt = f"""Você é um sistema de avaliação educacional avaliando um aluno de {contexto_disciplina}.
     Analise a última mensagem do aluno e a resposta do tutor.
-# ... resto da função ...
+    
+    Sua única tarefa é retornar um objeto JSON estrito com os seguintes campos:
+    - "demonstrou_entendimento": booleano (true se o aluno acertou ou avançou, false se errou ou tem dúvida)
+    - "nivel_dominio": inteiro de 0 a 100 (uma estimativa do domínio atual do aluno sobre o tópico discutido)
+    - "topico_especifico": string curta (ex: "Derivadas", "Laços de Repetição", "Matrizes")
+    - "falha_conceitual": string muito curta descrevendo exatamente qual foi o erro do aluno (ex: "Confundiu a porta AND com OR", "Esqueceu de fechar o parênteses lógico"). Se o aluno acertou e não cometeu erros, retorne null.
+    """
+
+    mensagens_api = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Mensagem do aluno: {mensagem_aluno}\nResposta do tutor: {resposta_tutor}"}
+    ]
+
+    response = client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=mensagens_api,
+        temperature=0.1, 
+        response_format={"type": "json_object"} 
+    )
+
+    resultado_json = json.loads(response.choices[0].message.content)
+    return resultado_json
