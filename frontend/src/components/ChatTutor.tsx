@@ -159,59 +159,61 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         </div>
       </div>
 
-      {/* NOVO: Barra de Seleção de Modos */}
-      <div className="bg-white border-b border-slate-200 px-4 py-3 flex gap-2 overflow-x-auto justify-center z-0 shadow-sm">
+      {/* BARRA DE MODOS CORRIGIDA: Adicionado overflow correto e whitespace-nowrap */}
+      <div className="bg-white border-b border-slate-200 px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap justify-start sm:justify-center z-0 shadow-sm scrollbar-hide">
         <button 
           onClick={() => setModo("tutor")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${modo === "tutor" ? "bg-blue-100 text-blue-700 border border-blue-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all shrink-0 ${modo === "tutor" ? "bg-blue-100 text-blue-700 border border-blue-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
         >
           <Bot size={16} /> Modo Tutor
         </button>
         <button 
           onClick={() => setModo("exercicios")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${modo === "exercicios" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all shrink-0 ${modo === "exercicios" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
         >
           <Terminal size={16} /> Exercícios
         </button>
         <button 
           onClick={() => setModo("revisao")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${modo === "revisao" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all shrink-0 ${modo === "revisao" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
         >
           <BookOpen size={16} /> Revisão Rápida
         </button>
       </div>
 
-      {/* Área de rolagem de mensagens */}
-      <div className="flex-1 overflow-y-auto px-4 py-8 flex flex-col items-center">
-        <div className="w-full max-w-3xl flex flex-col gap-8">
+      {/* ÁREA DE MENSAGENS CORRIGIDA: Removido o items-center que quebrava as bordas */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col w-full">
+        <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
           
           {mensagens.map((msg, idx) => (
-            <div key={idx} className={`flex gap-4 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div key={idx} className={`flex gap-3 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              
               {msg.role === "assistant" && (
-                <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
                   <Bot size={18} className="text-white" />
                 </div>
               )}
-              <div
-                className={`max-w-[85%] sm:max-w-[75%] px-5 py-4 text-[15px] leading-relaxed overflow-x-auto shadow-sm ${
-                  msg.role === "user"
-                    ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
-                    : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
-                }`}
-              >
-                {msg.role === "user" ? (
-                  msg.conteudo
-                ) : (
-                  <div className="prose prose-sm prose-slate max-w-none break-words">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath, remarkGfm]}
-                      rehypePlugins={[rehypeKatex]}
-                    >
-                      {msg.conteudo}
-                    </ReactMarkdown>
-                  </div>
-                )}
-              </div>
+              
+              {/* Oculta balões vazios do bot para não ficar aquele quadrado em branco da foto */}
+              {msg.conteudo.trim() !== "" && (
+                <div
+                  className={`max-w-[85%] sm:max-w-[80%] px-4 sm:px-5 py-3 sm:py-4 text-[14px] sm:text-[15px] leading-relaxed shadow-sm ${
+                    msg.role === "user"
+                      ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
+                      : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
+                  }`}
+                >
+                  {msg.role === "user" ? (
+                    msg.conteudo
+                  ) : (
+                    <div className="prose prose-sm prose-slate max-w-none break-words">
+                      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                        {msg.conteudo}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
 

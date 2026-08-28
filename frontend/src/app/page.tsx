@@ -243,8 +243,7 @@ export default function Home() {
       {usuarioLogado.cargo === "professor" ? (
         <DashboardProfessor emailProfessor={usuarioLogado.email} />
       ) : (
-        <div className="w-full max-w-[1400px] grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 h-[calc(100dvh-150px)] relative">
-          
+<div className="w-full max-w-[1400px] flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 lg:h-[calc(100vh-130px)] relative">          
           {/* Overlay escuro para Mobile (fecha o menu ao clicar fora) */}
           {menuMobileAberto && (
             <div 
@@ -292,7 +291,8 @@ export default function Home() {
           </section>
 
           {/* Área do Chat (Colspan 5 para dar espaço pro Dashboard) */}
-          <section className="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-h-[500px] lg:min-h-0 w-full relative z-10">
+          {/* CORREÇÃO: min-h-[60vh] adicionado para garantir espaço de chat no celular */}
+          <section className="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden min-h-[60vh] lg:min-h-0 w-full relative z-10">
             <ChatTutor 
               conversaId={conversaAtiva || usuarioLogado.conversa_id} 
               onNovaAvaliacao={handleNovaMensagem} 
@@ -311,7 +311,6 @@ export default function Home() {
           </section>
         </div>
       )}
-
       {modalAberto && (
         <ModalPerfil 
           nomeAtual={usuarioLogado.nome} 
