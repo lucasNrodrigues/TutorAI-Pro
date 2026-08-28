@@ -6,7 +6,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
-import { Send, Bot, Sparkles, BookOpen, Terminal } from 'lucide-react'; // <-- Novos ícones para os modos
+import { Send, Bot, Sparkles, BookOpen, Terminal } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 
 interface Mensagem {
@@ -26,8 +26,6 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  
-  // NOVO: Estado para controlar o modo de estudo
   const [modo, setModo] = useState("tutor"); 
 
   const mensagensEndRef = useRef<HTMLDivElement>(null);
@@ -60,7 +58,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           conversa_id: conversaId,
           role: "user",
           conteudo: textoDigitado, 
-          modo_estudo: modo // <-- Enviando o modo para o seu backend FastAPI
+          modo_estudo: modo
         }),
       });
 
@@ -130,7 +128,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           if (mensagensFormatadas.length > 0) {
             setMensagens(mensagensFormatadas);
           } else {
-            setMensagens([{ role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Escolha um modo de estudo acima e me diga qual é a sua dúvida de lógica hoje!" }]);
+            setMensagens([{ role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Escolha um modo de estudo acima e me diga qual é a sua dúvida hoje!" }]);
           }
         }
       } catch (error) {
@@ -145,7 +143,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
     <div className="flex flex-col flex-1 h-full w-full bg-slate-50 overflow-hidden font-sans">
       
       {/* Cabeçalho Minimalista */}
-      <div className="bg-white px-6 py-4 flex items-center justify-between border-b border-slate-200 z-10 shadow-sm">
+      <div className="bg-white px-6 py-4 flex items-center justify-between border-b border-slate-200 z-10 shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 border border-blue-100">
             <Bot size={22} />
@@ -159,8 +157,8 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         </div>
       </div>
 
-      {/* BARRA DE MODOS CORRIGIDA: Adicionado overflow correto e whitespace-nowrap */}
-      <div className="bg-white border-b border-slate-200 px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap justify-start sm:justify-center z-0 shadow-sm scrollbar-hide">
+      {/* Barra de Seleção de Modos (Corrigida: overflow-x-auto, whitespace-nowrap) */}
+      <div className="bg-white border-b border-slate-200 px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap justify-start sm:justify-center z-0 shadow-sm scrollbar-hide shrink-0">
         <button 
           onClick={() => setModo("tutor")}
           className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all shrink-0 ${modo === "tutor" ? "bg-blue-100 text-blue-700 border border-blue-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"}`}
@@ -181,23 +179,22 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         </button>
       </div>
 
-      {/* ÁREA DE MENSAGENS CORRIGIDA: Removido o items-center que quebrava as bordas */}
+      {/* Área de rolagem de mensagens (Corrigida: Ocupa toda a tela sem o max-w-3xl centralizado) */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col w-full">
-        <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+        <div className="w-full flex flex-col gap-6">
           
           {mensagens.map((msg, idx) => (
             <div key={idx} className={`flex gap-3 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              
               {msg.role === "assistant" && (
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
                   <Bot size={18} className="text-white" />
                 </div>
               )}
               
-              {/* Oculta balões vazios do bot para não ficar aquele quadrado em branco da foto */}
+              {/* Oculta balões vazios do bot */}
               {msg.conteudo.trim() !== "" && (
                 <div
-                  className={`max-w-[85%] sm:max-w-[80%] px-4 sm:px-5 py-3 sm:py-4 text-[14px] sm:text-[15px] leading-relaxed shadow-sm ${
+                  className={`max-w-[85%] sm:max-w-[85%] px-4 sm:px-5 py-3 sm:py-4 text-[14px] sm:text-[15px] leading-relaxed shadow-sm ${
                     msg.role === "user"
                       ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
                       : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
@@ -234,9 +231,9 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
         </div>
       </div>
 
-      {/* Input Moderno */}
-      <div className="shrink-0 bg-slate-50 px-4 pt-2 pb-6 flex justify-center border-t border-slate-200/50">
-        <form onSubmit={enviarMensagem} className="w-full max-w-3xl relative flex items-center group">
+      {/* Input Moderno (Corrigido: Sem max-w-3xl para esticar e preencher) */}
+      <div className="shrink-0 bg-slate-50 px-4 pt-3 pb-4 sm:pb-6 flex justify-center border-t border-slate-200/50">
+        <form onSubmit={enviarMensagem} className="w-full relative flex items-center group">
           <input
             type="text"
             value={input}
