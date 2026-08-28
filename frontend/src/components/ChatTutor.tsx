@@ -1,12 +1,12 @@
 "use client";
 
-// 1. ADICIONE O useRef AQUI NA IMPORTAÇÃO
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
+import { Send, Bot, Sparkles } from 'lucide-react'; // <-- Novos ícones adicionados
 import 'katex/dist/katex.min.css';
 
 interface Mensagem {
@@ -22,20 +22,17 @@ interface ChatTutorProps {
 
 export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensagem }: ChatTutorProps) {
   const [mensagens, setMensagens] = useState<Mensagem[]>([
-    { role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Em que conceito você está com dúvida hoje?" }
+    { role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Em que conceito de lógica você está com dúvida hoje?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 2. CRIE A REFERÊNCIA INVISÍVEL
   const mensagensEndRef = useRef<HTMLDivElement>(null);
 
-  // 3. CRIE A FUNÇÃO QUE FORÇA A ROLAGEM SUAVE
   const scrollToBottom = () => {
     mensagensEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 4. ATIVE A ROLAGEM SEMPRE QUE A LISTA DE MENSAGENS MUDAR
   useEffect(() => {
     scrollToBottom();
   }, [mensagens]);
@@ -64,7 +61,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
       });
 
       if (!response.ok || !response.body) {
-        throw new Error("Erro na conexão com o servidor do tutor.");
+        throw new Error("Erro na conexão com o servidor.");
       }
 
       setMensagens((prev) => [...prev, { role: "assistant", conteudo: "" }]);
@@ -94,7 +91,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           .then(() => {
             if (onPrimeiraMensagem) onPrimeiraMensagem(); 
           })
-          .catch(err => console.error("Erro ao gerar título automático:", err));
+          .catch(err => console.error("Erro ao gerar título:", err));
       }
 
     } catch (error) {
@@ -104,12 +101,8 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
 
       setMensagens((prev) => {
         const novoArray = [...prev];
-        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "assistant") {
-          novoArray.pop(); 
-        }
-        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "user") {
-          novoArray.pop();
-        }
+        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "assistant") novoArray.pop(); 
+        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "user") novoArray.pop();
         return novoArray;
       });
 
@@ -133,7 +126,7 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
           if (mensagensFormatadas.length > 0) {
             setMensagens(mensagensFormatadas);
           } else {
-            setMensagens([{ role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Em que conceito você está com dúvida hoje?" }]);
+            setMensagens([{ role: "assistant", conteudo: "Olá! Sou seu tutor de IA. Em que conceito de lógica você está com dúvida hoje?" }]);
           }
         }
       } catch (error) {
@@ -141,76 +134,105 @@ export default function ChatTutor({ conversaId, onNovaAvaliacao, onPrimeiraMensa
       }
     }
     
-    if (conversaId) {
-      buscarHistorico();
-    }
+    if (conversaId) buscarHistorico();
   }, [conversaId]);
 
   return (
-    // Trocamos o h-full por h-[600px] para travar o tamanho da caixa
-<div className="flex flex-col flex-1 h-full w-full overflow-hidden">
-   <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
-        <h2 className="text-white font-semibold">Tutor Interativo</h2>
+    // Fundo slate-50 (seu #F8FAFC) aplicado na div principal
+    <div className="flex flex-col flex-1 h-full w-full bg-slate-50 overflow-hidden font-sans">
+      
+      {/* Cabeçalho Minimalista e Branco */}
+      <div className="bg-white px-6 py-4 flex items-center justify-between border-b border-slate-200 z-10 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 border border-blue-100">
+            <Bot size={22} />
+          </div>
+          <div>
+            <h2 className="text-slate-800 font-semibold text-sm sm:text-base">TutorAI Pro</h2>
+            <p className="text-slate-500 text-xs flex items-center gap-1">
+              <Sparkles size={12} /> Assistente com RAG
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Como a caixa de cima agora tem um limite, esta div aqui vai criar a rolagem interna! */}
-      <div className="flex-1 p-6 overflow-y-auto bg-gray-50 flex flex-col gap-4">
-        {mensagens.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm overflow-x-auto ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-br-none shadow-sm"
-                  : "bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm"
-              }`}
-            >
-              {msg.role === "user" ? (
-                msg.conteudo
-              ) : (
-                <div className="prose prose-sm max-w-none text-gray-800 break-words">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkMath, remarkGfm]}
-                    rehypePlugins={[rehypeKatex]}
-                  >
-                    {msg.conteudo}
-                  </ReactMarkdown>
+      {/* Área de rolagem com conteúdo centralizado em max-w-3xl */}
+      <div className="flex-1 overflow-y-auto px-4 py-8 flex flex-col items-center">
+        <div className="w-full max-w-3xl flex flex-col gap-8">
+          
+          {mensagens.map((msg, idx) => (
+            <div key={idx} className={`flex gap-4 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              
+              {/* Avatar da IA (Só aparece na mensagem do Assistant) */}
+              {msg.role === "assistant" && (
+                <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
+                  <Bot size={18} className="text-white" />
                 </div>
               )}
+
+              {/* Balão de Mensagem */}
+              <div
+                className={`max-w-[85%] sm:max-w-[75%] px-5 py-4 text-[15px] leading-relaxed overflow-x-auto shadow-sm ${
+                  msg.role === "user"
+                    ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
+                    : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
+                }`}
+              >
+                {msg.role === "user" ? (
+                  msg.conteudo
+                ) : (
+                  <div className="prose prose-sm prose-slate max-w-none break-words">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath, remarkGfm]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {msg.conteudo}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-white text-gray-500 border border-gray-200 rounded-2xl rounded-bl-none px-4 py-3 text-sm shadow-sm flex items-center gap-2">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+          ))}
+
+          {/* Loading Minimalista (Três pontinhos piscando) */}
+          {loading && (
+            <div className="flex gap-4 w-full justify-start items-center">
+              <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0">
+                <Bot size={18} className="text-white" />
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex items-center gap-1.5 h-[52px]">
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+              </div>
             </div>
-          </div>
-        )}
-        
-        {/* 5. A ÂNCORA INVISÍVEL NO FINAL DA LISTA DE MENSAGENS */}
-        <div ref={mensagensEndRef} />
+          )}
+          
+          <div ref={mensagensEndRef} className="h-4" />
+        </div>
       </div>
 
-       {/* Trocamos p-4 por px-4 pt-4 pb-3 para espremer o fundo */}
-  <form onSubmit={enviarMensagem} className="shrink-0 px-4 pt-4 pb-3 bg-white border-t border-gray-100 flex flex-col gap-3">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Digite sua dúvida..."
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-black text-sm sm:text-base shadow-sm"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base shadow-sm uppercase tracking-wide"
-        >
-          Enviar
-        </button>
-      </form>
+      {/* Input Moderno (Estilo Pílula/Search Bar flutuante) */}
+      <div className="shrink-0 bg-slate-50 px-4 pt-2 pb-6 flex justify-center border-t border-slate-200/50">
+        <form onSubmit={enviarMensagem} className="w-full max-w-3xl relative flex items-center group">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Pergunte ao tutor..."
+            className="w-full bg-white border border-slate-300 rounded-full pl-6 pr-14 py-3.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-800 text-sm sm:text-base shadow-sm transition-all"
+            disabled={loading}
+          />
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="absolute right-2 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
+          >
+            <Send size={18} className={input.trim() && !loading ? "translate-x-[1px] translate-y-[-1px]" : ""} />
+          </button>
+        </form>
+      </div>
+
     </div>
   );
 }
