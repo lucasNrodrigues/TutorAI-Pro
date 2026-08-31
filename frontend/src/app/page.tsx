@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import MenuPerfil from '@/components/MenuPerfil';
 import DashboardProfessor from '@/components/DashboardProfessor'; 
 import BarraXP from '@/components/BarraXP';
 import SidebarConversas from '@/components/SidebarConversas';
+import Configuracoes from "@/components/Configuracoes";
 
 interface Usuario {
   aluno_id: number;
@@ -35,6 +37,7 @@ export default function Home() {
   const NOME_DO_SITE = "TutorAI Pro";
   const MENSAGEM_BOAS_VINDAS = "Seu parceiro de estudos inteligente, focado em lógica e raciocínio acadêmico.";
   const [modalAberto, setModalAberto] = useState(false);
+  const [configuracoesAberto, setConfiguracoesAberto] = useState(false);
   
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -243,12 +246,13 @@ export default function Home() {
             </div>
           )}
           
-          <MenuPerfil 
-            nome={usuarioLogado.nome}
-            foto_url={usuarioLogado.foto_url}
-            aoClicarEditar={() => setModalAberto(true)}
-            aoSair={handleLogout} 
-          />
+         <MenuPerfil
+  nome={usuarioLogado.nome}
+  foto_url={usuarioLogado.foto_url}
+  aoClicarEditar={() => setModalAberto(true)}
+  aoClicarConfiguracoes={() => setConfiguracoesAberto(true)}
+  aoSair={handleLogout}
+/>
         </div>
       </header>
       
@@ -391,6 +395,12 @@ export default function Home() {
           aoSalvar={handleAtualizarPerfil}
         />
       )}
+
+    {configuracoesAberto && (
+  <Configuracoes
+    fechar={() => setConfiguracoesAberto(false)}
+  />
+)}
     </main>
   );
 }
