@@ -1,75 +1,377 @@
 "use client";
-import { useState, useRef, useEffect } from 'react';
 
-export default function MenuPerfil({ nome, foto_url, aoClicarEditar, aoSair }: any) {
+import { useEffect, useRef, useState } from "react";
+import {
+  ChevronDown,
+  LogOut,
+  UserRound,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
+
+interface MenuPerfilProps {
+  nome?: string;
+  foto_url?: string;
+  aoClicarEditar: () => void;
+  aoSair: () => void;
+}
+
+export default function MenuPerfil({
+  nome,
+  foto_url,
+  aoClicarEditar,
+  aoSair,
+}: MenuPerfilProps) {
   const [aberto, setAberto] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Truque clássico de UI: Fecha o menu se o usuário clicar fora dele
+  const nomeUsuario = nome?.trim() || "Usuário";
+
+  const avatarPadrao = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    nomeUsuario
+  )}&background=eff6ff&color=2563eb&size=128&bold=true`;
+
   useEffect(() => {
     function handleClickFora(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
         setAberto(false);
       }
     }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAberto(false);
+      }
+    }
+
     document.addEventListener("mousedown", handleClickFora);
-    return () => document.removeEventListener("mousedown", handleClickFora);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickFora);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
 
-  // Mesma paleta de cores padrão do modal para manter a consistência
-  const avatarPadrao = `https://ui-avatars.com/api/?name=${nome || "User"}&background=eff6ff&color=2563eb`;
+  function handleEditar() {
+    setAberto(false);
+    aoClicarEditar();
+  }
+
+  function handleSair() {
+    setAberto(false);
+    aoSair();
+  }
 
   return (
-    <div className="relative" ref={menuRef}>
-      
-      {/* Botão do Perfil */}
-      <button 
-        onClick={() => setAberto(!aberto)}
-        className="flex items-center gap-3 p-1.5 pr-4 rounded-full transition-all border border-transparent hover:bg-white hover:border-gray-200 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 bg-gray-50"
+    <div ref={menuRef} className="relative">
+      {/* BOTÃO DO PERFIL */}
+
+      <button
+        type="button"
+        onClick={() => setAberto((prev) => !prev)}
+        aria-expanded={aberto}
+        aria-haspopup="menu"
+        className="
+          group
+          flex
+          items-center
+          gap-2.5
+          rounded-full
+          border
+          border-slate-200
+          bg-white
+          p-1.5
+          pr-3
+          shadow-sm
+          transition-all
+          duration-200
+          hover:border-slate-300
+          hover:shadow-md
+          focus:outline-none
+          focus:ring-2
+          focus:ring-blue-500/30
+        "
       >
-        <img 
-          src={foto_url || avatarPadrao} 
-          className="w-9 h-9 rounded-full object-cover border border-gray-200" 
-          alt="Avatar do Usuário"
-          onError={(e) => { (e.target as HTMLImageElement).src = avatarPadrao; }}
+        <div className="relative">
+          <img
+            src={foto_url || avatarPadrao}
+            alt={`Avatar de ${nomeUsuario}`}
+            className="
+              h-9
+              w-9
+              rounded-full
+              border-2
+              border-white
+              bg-slate-100
+              object-cover
+              shadow-sm
+            "
+            onError={(event) => {
+              event.currentTarget.src = avatarPadrao;
+            }}
+          />
+
+          {/* STATUS ONLINE */}
+
+          <span
+            className="
+              absolute
+              bottom-0
+              right-0
+              h-2.5
+              w-2.5
+              rounded-full
+              border-2
+              border-white
+              bg-emerald-500
+            "
+          />
+        </div>
+
+        <div className="hidden min-w-0 text-left sm:block">
+          <p className="max-w-[130px] truncate text-sm font-semibold text-slate-700">
+            {nomeUsuario}
+          </p>
+
+          <p className="text-[11px] font-medium text-slate-400">
+            Estudante
+          </p>
+        </div>
+
+        <ChevronDown
+          size={16}
+          className={`
+            text-slate-400
+            transition-transform
+            duration-200
+            ${aberto ? "rotate-180" : ""}
+          `}
         />
-        <span className="text-sm font-semibold text-gray-700 hidden sm:block">{nome}</span>
-        
-        {/* Ícone de setinha para baixo */}
-        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${aberto ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
       </button>
 
-      {/* Dropdown (Menu Aberto) */}
+      {/* DROPDOWN */}
+
       {aberto && (
-        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          
-          <div className="px-4 py-2 border-b border-gray-100 mb-1">
-            <p className="text-xs text-gray-500">Logado como</p>
-            <p className="text-sm font-bold text-gray-800 truncate">{nome}</p>
+        <div
+          role="menu"
+          className="
+            absolute
+            right-0
+            z-50
+            mt-2.5
+            w-72
+            origin-top-right
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-200
+            bg-white
+            shadow-xl
+            shadow-slate-900/10
+            animate-in
+            fade-in
+            zoom-in-95
+            slide-in-from-top-2
+            duration-200
+          "
+        >
+          {/* CABEÇALHO */}
+
+          <div className="border-b border-slate-100 bg-gradient-to-br from-blue-50/80 via-white to-white p-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src={foto_url || avatarPadrao}
+                  alt=""
+                  className="
+                    h-12
+                    w-12
+                    rounded-full
+                    border-2
+                    border-white
+                    object-cover
+                    shadow-sm
+                  "
+                  onError={(event) => {
+                    event.currentTarget.src = avatarPadrao;
+                  }}
+                />
+
+                <span
+                  className="
+                    absolute
+                    bottom-0
+                    right-0
+                    h-3
+                    w-3
+                    rounded-full
+                    border-2
+                    border-white
+                    bg-emerald-500
+                  "
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-slate-800">
+                  {nomeUsuario}
+                </p>
+
+                <div className="mt-1 flex items-center gap-1.5">
+                  <ShieldCheck
+                    size={13}
+                    className="text-emerald-500"
+                  />
+
+                  <span className="text-xs font-medium text-slate-500">
+                    Perfil ativo
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <button 
-            onClick={() => { aoClicarEditar(); setAberto(false); }}
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-          >
-            {/* Ícone de Utilizador */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            O Meu Perfil
-          </button>
-          
-          <button 
-            onClick={aoSair}
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Sair do Sistema
-          </button>
+          {/* OPÇÕES */}
+
+          <div className="p-2">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleEditar}
+              className="
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-xl
+                px-3
+                py-3
+                text-left
+                transition-colors
+                hover:bg-blue-50
+              "
+            >
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-blue-50
+                  text-blue-600
+                "
+              >
+                <UserRound size={17} />
+              </div>
+
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-700">
+                  Meu Perfil
+                </p>
+
+                <p className="text-xs text-slate-400">
+                  Editar informações
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => setAberto(false)}
+              className="
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-xl
+                px-3
+                py-3
+                text-left
+                transition-colors
+                hover:bg-slate-50
+              "
+            >
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-slate-100
+                  text-slate-500
+                "
+              >
+                <Settings size={17} />
+              </div>
+
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-700">
+                  Configurações
+                </p>
+
+                <p className="text-xs text-slate-400">
+                  Preferências da conta
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {/* SAIR */}
+
+          <div className="border-t border-slate-100 p-2">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleSair}
+              className="
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-xl
+                px-3
+                py-3
+                text-left
+                transition-colors
+                hover:bg-red-50
+              "
+            >
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-red-50
+                  text-red-500
+                "
+              >
+                <LogOut size={17} />
+              </div>
+
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-red-600">
+                  Sair do sistema
+                </p>
+
+                <p className="text-xs text-red-400">
+                  Encerrar sessão
+                </p>
+              </div>
+            </button>
+          </div>
         </div>
       )}
     </div>

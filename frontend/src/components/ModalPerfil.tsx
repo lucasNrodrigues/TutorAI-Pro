@@ -1,146 +1,628 @@
 "use client";
-import { useState } from 'react';
-import { toast } from 'sonner';
 
-// Agora o modal recebe a fotoAtual e bioAtual do page.tsx
-export default function ModalPerfil({ nomeAtual, fotoAtual, bioAtual, alunoId, aoSalvar, fechar }: any) {
+import { useEffect, useState, type ChangeEvent } from "react";
+import {
+  Camera,
+  Check,
+  Loader2,
+  Save,
+  UserRound,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
+
+interface DadosPerfil {
+  nome: string;
+  foto_url: string;
+  bio: string;
+}
+
+interface ModalPerfilProps {
+  nomeAtual?: string;
+  fotoAtual?: string;
+  bioAtual?: string;
+  alunoId: number;
+  aoSalvar: (dados: DadosPerfil) => void;
+  fechar: () => void;
+}
+
+export default function ModalPerfil({
+  nomeAtual,
+  fotoAtual,
+  bioAtual,
+  alunoId,
+  aoSalvar,
+  fechar,
+}: ModalPerfilProps) {
   const [novoNome, setNovoNome] = useState(nomeAtual || "");
   const [fotoUrl, setFotoUrl] = useState(fotoAtual || "");
   const [bio, setBio] = useState(bioAtual || "");
-  const [loading, setLoading] = useState(false);
-  const [fazendoUploadFoto, setFazendoUploadFoto] = useState(false);
 
-   // 1. O encodeURIComponent transforma espaços em "%20", garantindo que a URL não quebre!
-  const nomeFormatado = encodeURIComponent(novoNome || "User");
-  
-  // 2. Usamos o nome formatado e adicionamos um fallback super seguro
-  const avatarPreview = fotoUrl || `https://ui-avatars.com/api/?name=${nomeFormatado}&background=eff6ff&color=2563eb&size=128`;
-  // Função para subir a imagem física para o backend
-  async function handleUploadFoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [loading, setLoading] = useState(false);
+  const [fazendoUploadFoto, setFazendoUploadFoto] =
+    useState(false);
+
+  const nomeFormatado = encodeURIComponent(
+    novoNome || "Usuário"
+  );
+
+  const avatarPadrao = `https://ui-avatars.com/api/?name=${nomeFormatado}&background=eff6ff&color=2563eb&size=256&bold=true`;
+
+  const avatarPreview = fotoUrl || avatarPadrao;
+
+  /* ============================================================
+     FECHAR COM ESC
+  ============================================================ */
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loading) {
+        fechar();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [fechar, loading]);
+
+  /* ============================================================
+     UPLOAD DA FOTO
+  ============================================================ */
+
+  async function handleUploadFoto(
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    /* Validação */
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem válida.");
+      return;
+    }
+
+    const tamanhoMaximo = 5 * 1024 * 1024;
+
+    if (file.size > tamanhoMaximo) {
+      toast.error("A imagem deve ter no máximo 5 MB.");
+      return;
+    }
 
     setFazendoUploadFoto(true);
+
     const formData = new FormData();
+
     formData.append("file", file);
 
     try {
-      const res = await fetch(`http://localhost:8000/alunos/${alunoId}/foto`, {
-        method: "POST",
-        body: formData,
-      });
-      
-      if (!res.ok) throw new Error("Erro no upload");
-      
+      const res = await fetch(
+        `http://localhost:8000/alunos/${alunoId}/foto`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Erro no upload");
+      }
+
       const data = await res.json();
+
       setFotoUrl(data.url);
-      toast.success("Foto alterada!"); // Aviso elegante
-      
+
+      toast.success("Foto alterada com sucesso!");
     } catch (error) {
-      toast.error("Falha ao enviar a imagem. Verifique o tamanho do arquivo.");
+      console.error(error);
+
+      toast.error(
+        "Falha ao enviar a imagem. Verifique o arquivo e tente novamente."
+      );
     } finally {
       setFazendoUploadFoto(false);
+
+      event.target.value = "";
     }
   }
 
-  async function salvar() {
-  setLoading(true);
-  try {
-    const res = await fetch(`http://localhost:8000/alunos/${alunoId}/perfil`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: novoNome, foto_url: fotoUrl, bio: bio })
-    });
-    
-    if (!res.ok) throw new Error("Erro ao comunicar com o servidor.");
+  /* ============================================================
+     SALVAR PERFIL
+  ============================================================ */
 
-    aoSalvar({ nome: novoNome, foto_url: fotoUrl, bio: bio });
-    fechar();
-    
-    // Feedback de Sucesso!
-    toast.success("Perfil atualizado com sucesso!");
-    
-  } catch (error) {
-    console.error(error);
-    // Feedback de Erro!
-    toast.error("Não foi possível salvar o perfil. Tente novamente.");
-  } finally {
-    setLoading(false);
+  async function salvar() {
+    if (!novoNome.trim()) {
+      toast.error("Informe seu nome.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `http://localhost:8000/alunos/${alunoId}/perfil`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome: novoNome.trim(),
+            foto_url: fotoUrl,
+            bio: bio.trim(),
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(
+          "Erro ao comunicar com o servidor."
+        );
+      }
+
+      const dadosAtualizados: DadosPerfil = {
+        nome: novoNome.trim(),
+        foto_url: fotoUrl,
+        bio: bio.trim(),
+      };
+
+      aoSalvar(dadosAtualizados);
+
+      toast.success(
+        "Perfil atualizado com sucesso!"
+      );
+
+      fechar();
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        "Não foi possível salvar o perfil. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-gray-100">
-        
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-xl font-bold text-gray-800">O Meu Perfil</h2>
-          <button onClick={fechar} className="text-gray-400 hover:bg-gray-200 p-1 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div
+      className="
+        fixed
+        inset-0
+        z-50
+        flex
+        items-center
+        justify-center
+        bg-slate-950/50
+        p-4
+        backdrop-blur-sm
+        animate-in
+        fade-in
+        duration-200
+      "
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !loading) {
+          fechar();
+        }
+      }}
+    >
+      <div
+        className="
+          w-full
+          max-w-lg
+          overflow-hidden
+          rounded-3xl
+          border
+          border-slate-200
+          bg-white
+          shadow-2xl
+          shadow-slate-950/20
+          animate-in
+          fade-in
+          zoom-in-95
+          slide-in-from-bottom-3
+          duration-200
+        "
+      >
+        {/* ======================================================
+            CABEÇALHO
+        ====================================================== */}
+
+        <div
+          className="
+            relative
+            overflow-hidden
+            border-b
+            border-slate-100
+            bg-gradient-to-br
+            from-blue-50
+            via-white
+            to-white
+            px-6
+            py-5
+          "
+        >
+          {/* Decoração */}
+
+          <div
+            className="
+              absolute
+              -right-10
+              -top-10
+              h-32
+              w-32
+              rounded-full
+              bg-blue-100/50
+              blur-2xl
+            "
+          />
+
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-blue-600
+                  text-white
+                  shadow-lg
+                  shadow-blue-600/20
+                "
+              >
+                <UserRound size={21} />
+              </div>
+
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  Meu Perfil
+                </h2>
+
+                <p className="text-xs text-slate-500">
+                  Personalize suas informações
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={fechar}
+              disabled={loading}
+              className="
+                flex
+                h-9
+                w-9
+                items-center
+                justify-center
+                rounded-xl
+                text-slate-400
+                transition-colors
+                hover:bg-white
+                hover:text-slate-700
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+              aria-label="Fechar"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
-        
-        <div className="p-6 space-y-5">
-          
-          {/* O Avatar agora é um botão de Upload disfarçado */}
-          <div className="flex flex-col items-center justify-center mb-2">
-            <label className={`relative cursor-pointer group ${fazendoUploadFoto ? 'opacity-50' : 'hover:opacity-90'}`}>
-              <img 
-                src={avatarPreview} 
-                alt="Preview do Perfil" 
-                className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md bg-gray-100 transition-all"
-                onError={(e) => {
-                  // Se a foto do servidor falhar, ele força o avatar de iniciais
-                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${nomeFormatado}&background=fecaca&color=dc2626&size=128`;
+
+        {/* ======================================================
+            CONTEÚDO
+        ====================================================== */}
+
+        <div className="space-y-6 p-6">
+          {/* AVATAR */}
+
+          <div className="flex flex-col items-center">
+            <label
+              className={`
+                group
+                relative
+                cursor-pointer
+                ${
+                  fazendoUploadFoto
+                    ? "cursor-wait opacity-60"
+                    : ""
+                }
+              `}
+            >
+              <div
+                className="
+                  absolute
+                  -inset-1
+                  rounded-full
+                  bg-gradient-to-br
+                  from-blue-400
+                  to-indigo-500
+                  opacity-20
+                  blur-sm
+                "
+              />
+
+              <img
+                src={avatarPreview}
+                alt="Foto do perfil"
+                className="
+                  relative
+                  h-28
+                  w-28
+                  rounded-full
+                  border-4
+                  border-white
+                  bg-slate-100
+                  object-cover
+                  shadow-lg
+                  transition-transform
+                  duration-200
+                  group-hover:scale-[1.02]
+                "
+                onError={(event) => {
+                  event.currentTarget.src =
+                    avatarPadrao;
                 }}
               />
-              {/* Overlay escura que aparece quando passa o mouse */}
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-xs font-bold">Mudar Foto</span>
+
+              {/* OVERLAY */}
+
+              <div
+                className="
+                  absolute
+                  inset-0
+                  flex
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-slate-950/50
+                  opacity-0
+                  transition-opacity
+                  duration-200
+                  group-hover:opacity-100
+                "
+              >
+                {fazendoUploadFoto ? (
+                  <Loader2
+                    size={24}
+                    className="
+                      animate-spin
+                      text-white
+                    "
+                  />
+                ) : (
+                  <Camera
+                    size={25}
+                    className="text-white"
+                  />
+                )}
               </div>
-              {/* O input de arquivo escondido */}
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
+
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
                 onChange={handleUploadFoto}
-                disabled={fazendoUploadFoto}
+                disabled={
+                  fazendoUploadFoto || loading
+                }
               />
             </label>
-            {fazendoUploadFoto && <p className="text-xs text-blue-600 mt-2 font-medium">Carregando foto...</p>}
+
+            <p className="mt-3 text-sm font-semibold text-slate-700">
+              {fazendoUploadFoto
+                ? "Enviando foto..."
+                : "Alterar foto"}
+            </p>
+
+            <p className="mt-1 text-xs text-slate-400">
+              JPG, PNG ou WEBP • Máx. 5 MB
+            </p>
           </div>
 
+          {/* NOME */}
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Nome Completo</label>
-            <input 
-              className="w-full border border-gray-300 px-4 py-2.5 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-500" 
-              value={novoNome} 
-              onChange={(e) => setNovoNome(e.target.value)} 
+            <label
+              htmlFor="nome-perfil"
+              className="
+                mb-2
+                block
+                text-sm
+                font-semibold
+                text-slate-700
+              "
+            >
+              Nome completo
+            </label>
+
+            <input
+              id="nome-perfil"
+              type="text"
+              value={novoNome}
+              onChange={(event) =>
+                setNovoNome(event.target.value)
+              }
+              placeholder="Digite seu nome"
+              disabled={loading}
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-200
+                bg-slate-50
+                px-4
+                py-3
+                text-sm
+                text-slate-800
+                outline-none
+                transition-all
+                placeholder:text-slate-400
+                hover:border-slate-300
+                focus:border-blue-500
+                focus:bg-white
+                focus:ring-4
+                focus:ring-blue-500/10
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             />
           </div>
 
+          {/* BIO */}
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Biografia Acadêmica</label>
-            <textarea 
-              className="w-full border border-gray-300 px-4 py-3 rounded-lg text-gray-800 h-24 resize-none focus:ring-2 focus:ring-blue-500" 
-              placeholder="Ex: Estudante da UFERSA apaixonado por Lógica..." 
-              value={bio} 
-              onChange={(e) => setBio(e.target.value)} 
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="bio-perfil"
+                className="
+                  block
+                  text-sm
+                  font-semibold
+                  text-slate-700
+                "
+              >
+                Biografia acadêmica
+              </label>
+
+              <span className="text-xs text-slate-400">
+                {bio.length}/300
+              </span>
+            </div>
+
+            <textarea
+              id="bio-perfil"
+              value={bio}
+              maxLength={300}
+              onChange={(event) =>
+                setBio(event.target.value)
+              }
+              disabled={loading}
+              placeholder="Conte um pouco sobre seus estudos..."
+              className="
+                min-h-[110px]
+                w-full
+                resize-none
+                rounded-xl
+                border
+                border-slate-200
+                bg-slate-50
+                px-4
+                py-3
+                text-sm
+                leading-relaxed
+                text-slate-800
+                outline-none
+                transition-all
+                placeholder:text-slate-400
+                hover:border-slate-300
+                focus:border-blue-500
+                focus:bg-white
+                focus:ring-4
+                focus:ring-blue-500/10
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             />
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3 justify-end rounded-b-2xl">
-          <button onClick={fechar} className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+        {/* ======================================================
+            RODAPÉ
+        ====================================================== */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-end
+            gap-3
+            border-t
+            border-slate-100
+            bg-slate-50/70
+            px-6
+            py-4
+          "
+        >
+          <button
+            type="button"
+            onClick={fechar}
+            disabled={loading}
+            className="
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              px-5
+              py-2.5
+              text-sm
+              font-semibold
+              text-slate-600
+              shadow-sm
+              transition-all
+              hover:bg-slate-50
+              hover:text-slate-800
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
             Cancelar
           </button>
-          <button onClick={salvar} disabled={loading || fazendoUploadFoto} className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-            {loading ? "Salvando..." : "Salvar Perfil"}
+
+          <button
+            type="button"
+            onClick={salvar}
+            disabled={
+              loading ||
+              fazendoUploadFoto ||
+              !novoNome.trim()
+            }
+            className="
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              bg-blue-600
+              px-5
+              py-2.5
+              text-sm
+              font-semibold
+              text-white
+              shadow-lg
+              shadow-blue-600/20
+              transition-all
+              hover:bg-blue-700
+              hover:shadow-blue-600/30
+              disabled:cursor-not-allowed
+              disabled:bg-slate-300
+              disabled:shadow-none
+            "
+          >
+            {loading ? (
+              <>
+                <Loader2
+                  size={17}
+                  className="animate-spin"
+                />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save size={17} />
+                Salvar alterações
+              </>
+            )}
           </button>
         </div>
-        
       </div>
     </div>
   );
