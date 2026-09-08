@@ -58,7 +58,7 @@ def gerar_resposta_pedagogica_stream(contexto_disciplina: str, historico_mensage
 
     # O segredo aqui é o stream=True
     response = client.chat.completions.create(
-        model="openai/gpt-oss-120b", # ou a linha Llama 3 que você vem utilizando
+        model="llama-3.3-70b-versatile", # Ou o modelo Llama/OpenAI configurado na sua conta Groq
         messages=mensagens_api,
         temperature=0.4,
         max_tokens=1024,
@@ -69,7 +69,7 @@ def gerar_resposta_pedagogica_stream(contexto_disciplina: str, historico_mensage
     for chunk in response:
         pedaco = chunk.choices[0].delta.content
         if pedaco:
-            yield pedacos
+            yield pedaco  # ✅ Corrigido de 'pedacos' para 'pedaco'
 
 def avaliar_progresso_silencioso(contexto_disciplina: str, mensagem_aluno: str, resposta_tutor: str) -> dict:
     """
@@ -91,7 +91,7 @@ def avaliar_progresso_silencioso(contexto_disciplina: str, mensagem_aluno: str, 
     ]
 
     response = client.chat.completions.create(
-        model="openai/gpt-oss-120b",
+        model="llama-3.3-70b-versatile",
         messages=mensagens_api,
         temperature=0.1, 
         response_format={"type": "json_object"} 
