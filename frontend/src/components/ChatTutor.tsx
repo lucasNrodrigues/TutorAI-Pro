@@ -73,7 +73,7 @@ export default function ChatTutor({
   }, [mensagens]);
 
   /* ============================================================
-     ENVIAR MENSAGEM
+     ENVIAR MENSAGEM (CORRIGIDO COM STREAMING)
   ============================================================ */
 
   async function enviarMensagem(e: FormEvent) {
@@ -83,9 +83,10 @@ export default function ChatTutor({
       return;
     }
 
-    const ehPrimeiraMensagem = mensagens.length <= 1;
     const textoDigitado = input.trim();
+    const ehPrimeiraMensagem = mensagens.length <= 1;
 
+    // 1. Adiciona a mensagem do usuário
     const novaMensagem: Mensagem = {
       role: "user",
       conteudo: textoDigitado,
@@ -93,7 +94,7 @@ export default function ChatTutor({
 
     setMensagens((prev) => [...prev, novaMensagem]);
     setInput("");
-    setLoading(true);
+    setLoading(true); // Liga o indicador de "Pensando..."
 
     try {
       const response = await fetch(
@@ -113,119 +114,66 @@ export default function ChatTutor({
       );
 
       if (!response.ok || !response.body) {
-        throw new Error(
-          "Erro na conexão com o servidor."
-        );
+        throw new Error("Erro na conexão com o servidor.");
       }
 
-      /* ========================================================
-         CRIA BALÃO DO ASSISTENTE
-      ======================================================== */
+      // 2. Tira os "três pontinhos" pois a resposta vai começar a chegar
+      setLoading(false);
 
-      setMensagens((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          conteudo: "",
-        },
-      ]);
+      // 3. Adiciona um balão vazio do robô para começar a preencher
+      setMensagens((prev) => [...prev, { role: "assistant", conteudo: "" }]);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
+      let respostaCompleta = "";
 
-      let textoAcumulado = "";
-
-      /* ========================================================
-         STREAM
-      ======================================================== */
-
+      // 4. Lê o texto aos poucos (Streaming)
       while (true) {
         const { done, value } = await reader.read();
 
-        if (done) {
-          break;
-        }
+        if (done) break;
 
-        const pedaco = decoder.decode(value, {
-          stream: true,
-        });
+        const pedaco = decoder.decode(value, { stream: true });
+        respostaCompleta += pedaco;
 
-        textoAcumulado += pedaco;
-
+        // Atualiza apenas a última mensagem do array (que é a do assistente)
         setMensagens((prev) => {
           const novoArray = [...prev];
-
           if (novoArray.length > 0) {
-            novoArray[novoArray.length - 1] = {
-              ...novoArray[novoArray.length - 1],
-              conteudo: textoAcumulado,
-            };
+            novoArray[novoArray.length - 1].conteudo = respostaCompleta;
           }
-
           return novoArray;
         });
       }
 
-      /* ========================================================
-         ATUALIZA DASHBOARD
-      ======================================================== */
-
+      // 5. Atualiza o dashboard e o título quando terminar
       onNovaAvaliacao();
-
-      /* ========================================================
-         GERAR TÍTULO
-      ======================================================== */
 
       if (ehPrimeiraMensagem) {
         fetch(
           `https://tutorai-backend-km0b.onrender.com/conversas/${conversaId}/gerar-titulo`,
-          {
-            method: "PUT",
-          }
+          { method: "PUT" }
         )
           .then(() => {
-            if (onPrimeiraMensagem) {
-              onPrimeiraMensagem();
-            }
+            if (onPrimeiraMensagem) onPrimeiraMensagem();
           })
-          .catch((err) =>
-            console.error(
-              "Erro ao gerar título:",
-              err
-            )
-          );
+          .catch((err) => console.error("Erro ao gerar título:", err));
       }
     } catch (error) {
-      console.error(
-        "Erro no fluxo do chat:",
-        error
-      );
+      console.error("Erro no fluxo do chat:", error);
+      toast.error("Opa! A mensagem não pôde ser enviada. Verifique sua conexão.");
+      
+      setInput(textoDigitado); // Devolve o texto caso de erro
 
-      toast.error(
-        "Opa! A mensagem não pôde ser enviada. Verifique sua conexão."
-      );
-
-      setInput(textoDigitado);
-
+      // Remove as mensagens quebradas
       setMensagens((prev) => {
         const novoArray = [...prev];
-
-        if (
-          novoArray.length > 0 &&
-          novoArray[novoArray.length - 1].role ===
-            "assistant"
-        ) {
+        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "assistant") {
           novoArray.pop();
         }
-
-        if (
-          novoArray.length > 0 &&
-          novoArray[novoArray.length - 1].role ===
-            "user"
-        ) {
+        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "user") {
           novoArray.pop();
         }
-
         return novoArray;
       });
     } finally {
@@ -249,11 +197,18 @@ export default function ChatTutor({
         if (res.ok) {
           const dados = await res.json();
 
-          const mensagensFormatadas: Mensagem[] =
-            dados.map((m: unknown) => ({
-              role: (m as { role: string }).role,
-              conteudo: (m as { conteudo: string }).conteudo,
-            }));
+          const mensagensFormatadas: Mensagem[] = dados.map((m: unknown) => {
+            if (typeof m === "object" && m !== null) {
+              return {
+                role: (m as { role: string }).role,
+                conteudo: (m as { conteudo: string }).conteudo,
+              };
+            }
+            return {
+              role: "assistant",
+              conteudo: "Erro ao formatar mensagem.",
+            };
+          });
 
           if (mensagensFormatadas.length > 0) {
             setMensagens(mensagensFormatadas);
@@ -268,11 +223,7 @@ export default function ChatTutor({
           }
         }
       } catch (error) {
-        console.error(
-          "Erro ao carregar histórico:",
-          error
-        );
-
+        console.error("Erro ao carregar histórico:", error);
         setMensagens([
           {
             role: "assistant",
@@ -293,334 +244,93 @@ export default function ChatTutor({
   ============================================================ */
 
   return (
-    <div
-      className="
-        flex
-        flex-col
-        flex-1
-        min-h-0
-        min-w-0
-        h-full
-        w-full
-        bg-slate-50
-        overflow-hidden
-        font-sans
-      "
-    >
-      {/* ========================================================
-          CABEÇALHO
-      ======================================================== */}
-
-      <div
-        className="
-          bg-white
-          px-5
-          sm:px-6
-          py-3.5
-          flex
-          items-center
-          justify-between
-          border-b
-          border-slate-200
-          z-10
-          shrink-0
-        "
-      >
-        <div
-          className="
-            flex
-            items-center
-            gap-3
-          "
-        >
-          {/* ÍCONE */}
-
+    <div className="flex flex-col flex-1 min-h-0 min-w-0 h-full w-full bg-slate-50 overflow-hidden font-sans">
+      
+      {/* CABEÇALHO */}
+      <div className="bg-white px-5 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-200 z-10 shrink-0">
+        <div className="flex items-center gap-3">
           <div className="relative">
-            <div
-              className="
-                bg-blue-50
-                p-2.5
-                rounded-xl
-                text-blue-600
-                border
-                border-blue-100
-              "
-            >
+            <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 border border-blue-100">
               <Bot size={22} />
             </div>
-
-            {/* STATUS */}
-
-            <span
-              className="
-                absolute
-                bottom-0
-                right-0
-                w-2.5
-                h-2.5
-                bg-emerald-500
-                rounded-full
-                border-2
-                border-white
-              "
-            />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
           </div>
-
-          {/* TEXTO */}
-
           <div>
-            <h2
-              className="
-                text-slate-800
-                font-semibold
-                text-sm
-                sm:text-base
-              "
-            >
-              TutorAI Pro
-            </h2>
-
-            <p
-              className="
-                text-slate-500
-                text-xs
-                flex
-                items-center
-                gap-1
-              "
-            >
+            <h2 className="text-slate-800 font-semibold text-sm sm:text-base">TutorAI Pro</h2>
+            <p className="text-slate-500 text-xs flex items-center gap-1">
               <Sparkles size={12} />
-
               Assistente com RAG
-
-              <span
-                className="
-                  text-emerald-500
-                  font-medium
-                  ml-1
-                "
-              >
-                • Online
-              </span>
+              <span className="text-emerald-500 font-medium ml-1">• Online</span>
             </p>
           </div>
         </div>
       </div>
 
-      {/* ========================================================
-          MODOS DE ESTUDO
-      ======================================================== */}
-
-      <div
-        className="
-          bg-white
-          border-b
-          border-slate-200
-          px-4
-          py-2.5
-          flex
-          gap-2
-          overflow-x-auto
-          whitespace-nowrap
-          justify-start
-          sm:justify-center
-          shrink-0
-        "
-      >
-        {/* MODO TUTOR */}
-
+      {/* MODOS DE ESTUDO */}
+      <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex gap-2 overflow-x-auto whitespace-nowrap justify-start sm:justify-center shrink-0">
         <button
           type="button"
           onClick={() => setModo("tutor")}
-          className={`
-            flex
-            items-center
-            gap-2
-            px-4
-            py-2
-            rounded-xl
-            text-sm
-            font-semibold
-            transition-all
-            shrink-0
-            ${
-              modo === "tutor"
-                ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
-            }
-          `}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 ${
+            modo === "tutor"
+              ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
+              : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+          }`}
         >
-          <Bot size={16} />
-          Modo Tutor
+          <Bot size={16} /> Modo Tutor
         </button>
-
-        {/* EXERCÍCIOS */}
 
         <button
           type="button"
           onClick={() => setModo("exercicios")}
-          className={`
-            flex
-            items-center
-            gap-2
-            px-4
-            py-2
-            rounded-xl
-            text-sm
-            font-semibold
-            transition-all
-            shrink-0
-            ${
-              modo === "exercicios"
-                ? "bg-amber-50 text-amber-700 border border-amber-200 shadow-sm"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
-            }
-          `}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 ${
+            modo === "exercicios"
+              ? "bg-amber-50 text-amber-700 border border-amber-200 shadow-sm"
+              : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+          }`}
         >
-          <Terminal size={16} />
-          Exercícios
+          <Terminal size={16} /> Exercícios
         </button>
-
-        {/* REVISÃO */}
 
         <button
           type="button"
           onClick={() => setModo("revisao")}
-          className={`
-            flex
-            items-center
-            gap-2
-            px-4
-            py-2
-            rounded-xl
-            text-sm
-            font-semibold
-            transition-all
-            shrink-0
-            ${
-              modo === "revisao"
-                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
-            }
-          `}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 ${
+            modo === "revisao"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
+              : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+          }`}
         >
-          <BookOpen size={16} />
-          Revisão Rápida
+          <BookOpen size={16} /> Revisão Rápida
         </button>
       </div>
 
-      {/* ========================================================
-          MENSAGENS
-      ======================================================== */}
-
-      <div
-        className="
-          flex-1
-          min-h-0
-          min-w-0
-          overflow-y-auto
-          p-4
-          sm:p-6
-          w-full
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-5xl
-            mx-auto
-            flex
-            flex-col
-            gap-5
-          "
-        >
+      {/* MENSAGENS */}
+      <div className="flex-1 min-h-0 min-w-0 overflow-y-auto p-4 sm:p-6 w-full">
+        <div className="w-full max-w-5xl mx-auto flex flex-col gap-5">
           {mensagens.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`
-                flex
-                gap-3
-                w-full
-                ${
-                  msg.role === "user"
-                    ? "justify-end"
-                    : "justify-start"
-                }
-              `}
-            >
+            <div key={idx} className={`flex gap-3 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               {/* ÍCONE DO BOT */}
-
               {msg.role === "assistant" && (
-                <div
-                  className="
-                    w-8
-                    h-8
-                    sm:w-9
-                    sm:h-9
-                    rounded-full
-                    bg-blue-600
-                    border-2
-                    border-white
-                    shadow-sm
-                    flex
-                    items-center
-                    justify-center
-                    shrink-0
-                    mt-1
-                  "
-                >
-                  <Bot
-                    size={18}
-                    className="text-white"
-                  />
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
+                  <Bot size={18} className="text-white" />
                 </div>
               )}
 
-             {/* BALÃO */}
+              {/* BALÃO (AGORA APARECE CORRETAMENTE) */}
               {msg.conteudo.trim() !== "" && (
                 <div
-                  className={`
-                    max-w-[90%]
-                    sm:max-w-[80%]
-                    lg:max-w-[75%]
-                    px-4
-                    sm:px-5
-                    py-3
-                    sm:py-4
-                    text-[14px]
-                    sm:text-[15px]
-                    leading-relaxed
-                    shadow-sm
-                    break-words
-                    overflow-hidden
-                    ${
-                      msg.role === "user"
-                        ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
-                        : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
-                    }
-                  `}
+                  className={`max-w-[90%] sm:max-w-[80%] lg:max-w-[75%] px-4 sm:px-5 py-3 sm:py-4 text-[14px] sm:text-[15px] leading-relaxed shadow-sm break-words overflow-hidden ${
+                    msg.role === "user"
+                      ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
+                      : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
+                  }`}
                 >
                   {msg.role === "user" ? (
-                    <span className="whitespace-pre-wrap">
-                      {msg.conteudo}
-                    </span>
+                    <span className="whitespace-pre-wrap">{msg.conteudo}</span>
                   ) : (
-                    <div
-                      className="
-                        prose
-                        prose-sm
-                        prose-slate
-                        max-w-none
-                        break-words
-                      "
-                    >
-                      <ReactMarkdown
-                        remarkPlugins={[
-                          remarkMath,
-                          remarkGfm,
-                        ]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
+                    <div className="prose prose-sm prose-slate max-w-none break-words">
+                      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
                         {msg.conteudo}
                       </ReactMarkdown>
                     </div>
@@ -630,189 +340,41 @@ export default function ChatTutor({
             </div>
           ))}
 
-          {/* ====================================================
-              LOADING
-          ==================================================== */}
-
+          {/* LOADING (3 PONTINHOS) */}
           {loading && (
-            <div
-              className="
-                flex
-                gap-4
-                w-full
-                justify-start
-                items-center
-              "
-            >
-              <div
-                className="
-                  w-9
-                  h-9
-                  rounded-full
-                  bg-blue-600
-                  border-2
-                  border-white
-                  shadow-sm
-                  flex
-                  items-center
-                  justify-center
-                  shrink-0
-                "
-              >
-                <Bot
-                  size={18}
-                  className="text-white"
-                />
+            <div className="flex gap-4 w-full justify-start items-center">
+              <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0">
+                <Bot size={18} className="text-white" />
               </div>
-
-              <div
-                className="
-                  bg-white
-                  border
-                  border-slate-200
-                  rounded-2xl
-                  rounded-tl-sm
-                  px-5
-                  py-4
-                  shadow-sm
-                  flex
-                  items-center
-                  gap-1.5
-                  h-[52px]
-                "
-              >
-                <div
-                  className="
-                    w-2
-                    h-2
-                    bg-slate-400
-                    rounded-full
-                    animate-bounce
-                  "
-                />
-
-                <div
-                  className="
-                    w-2
-                    h-2
-                    bg-slate-400
-                    rounded-full
-                    animate-bounce
-                  "
-                  style={{
-                    animationDelay: "0.2s",
-                  }}
-                />
-
-                <div
-                  className="
-                    w-2
-                    h-2
-                    bg-slate-400
-                    rounded-full
-                    animate-bounce
-                  "
-                  style={{
-                    animationDelay: "0.4s",
-                  }}
-                />
+              <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex items-center gap-1.5 h-[52px]">
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
               </div>
             </div>
           )}
 
-          {/* REFERÊNCIA DO SCROLL */}
-
-          <div
-            ref={mensagensEndRef}
-            className="h-4"
-          />
+          <div ref={mensagensEndRef} className="h-4" />
         </div>
       </div>
 
-      {/* ========================================================
-          INPUT
-      ======================================================== */}
-
-      <div
-        className="
-          shrink-0
-          bg-white
-          px-4
-          pt-3
-          pb-4
-          sm:px-5
-          sm:pb-5
-          flex
-          justify-center
-          border-t
-          border-slate-200
-        "
-      >
-        <form
-          onSubmit={enviarMensagem}
-          className="
-            w-full
-            max-w-5xl
-            relative
-            flex
-            items-center
-          "
-        >
+      {/* INPUT */}
+      <div className="shrink-0 bg-white px-4 pt-3 pb-4 sm:px-5 sm:pb-5 flex justify-center border-t border-slate-200">
+        <form onSubmit={enviarMensagem} className="w-full max-w-5xl relative flex items-center">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={`Pergunte ao tutor (Modo ${modo})...`}
-            className="
-              w-full
-              bg-slate-50
-              border
-              border-slate-300
-              rounded-2xl
-              pl-5
-              pr-14
-              py-3.5
-              focus:outline-none
-              focus:border-blue-500
-              focus:ring-4
-              focus:ring-blue-500/10
-              text-slate-800
-              text-sm
-              sm:text-base
-              transition-all
-            "
+            className="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-5 pr-14 py-3.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-800 text-sm sm:text-base transition-all"
             disabled={loading}
           />
-
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="
-              absolute
-              right-2
-              p-2.5
-              bg-blue-600
-              text-white
-              rounded-xl
-              hover:bg-blue-700
-              disabled:bg-slate-300
-              disabled:text-slate-500
-              disabled:cursor-not-allowed
-              transition-colors
-              shadow-sm
-              flex
-              items-center
-              justify-center
-            "
+            className="absolute right-2 p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
           >
-            <Send
-              size={18}
-              className={
-                input.trim() && !loading
-                  ? "translate-x-px -translate-y-px"
-                  : ""
-              }
-            />
+            <Send size={18} className={input.trim() && !loading ? "translate-x-px -translate-y-px" : ""} />
           </button>
         </form>
       </div>
