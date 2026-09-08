@@ -612,18 +612,22 @@ export default function ChatTutor({
                         prose-sm
                         prose-slate
                         max-w-none
-                        break-words
+                        wrap-break-word
                       "
                     >
-                      <ReactMarkdown
-                        remarkPlugins={[
-                          remarkMath,
-                          remarkGfm,
-                        ]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
-                        {msg.conteudo}
-                      </ReactMarkdown>
+                      {msg.conteudo.trim() === "" ? (
+                        <span className="text-slate-400 italic">Pensando...</span>
+                      ) : (
+                        <ReactMarkdown
+                          remarkPlugins={[
+                            remarkMath,
+                            remarkGfm,
+                          ]}
+                          rehypePlugins={[rehypeKatex]}
+                        >
+                          {msg.conteudo}
+                        </ReactMarkdown>
+                      )}
                     </div>
                   )}
                 </div>
