@@ -12,7 +12,6 @@ import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
-
 import { toast } from "sonner";
 
 import {
@@ -107,7 +106,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
         ---------------------------------------------------- */
 
         p: ({ children }) => (
-          <p className="mb-4 last:mb-0 leading-7 text-slate-700">
+          <p className="mb-4 last:mb-0 leading-7 text-slate-700 dark:text-slate-300">
             {children}
           </p>
         ),
@@ -121,7 +120,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
             className="
               text-xl sm:text-2xl
               font-bold
-              text-slate-900
+              text-slate-900 dark:text-white
               mt-6 mb-4
               first:mt-0
               tracking-tight
@@ -136,7 +135,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
             className="
               text-lg sm:text-xl
               font-bold
-              text-slate-900
+              text-slate-900 dark:text-white
               mt-6 mb-3
               first:mt-0
               tracking-tight
@@ -151,7 +150,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
             className="
               text-base sm:text-lg
               font-semibold
-              text-slate-800
+              text-slate-800 dark:text-slate-100
               mt-5 mb-2
               first:mt-0
             "
@@ -165,7 +164,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
             className="
               text-sm sm:text-base
               font-semibold
-              text-slate-800
+              text-slate-800 dark:text-slate-100
               mt-4 mb-2
             "
           >
@@ -184,7 +183,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
               pl-6
               mb-4
               space-y-1.5
-              text-slate-700
+              text-slate-700 dark:text-slate-300
             "
           >
             {children}
@@ -198,7 +197,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
               pl-6
               mb-4
               space-y-2
-              text-slate-700
+              text-slate-700 dark:text-slate-300
             "
           >
             {children}
@@ -206,9 +205,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
         ),
 
         li: ({ children }) => (
-          <li className="pl-1 leading-7">
-            {children}
-          </li>
+          <li className="pl-1 leading-7">{children}</li>
         ),
 
         /* ----------------------------------------------------
@@ -216,13 +213,13 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
         ---------------------------------------------------- */
 
         strong: ({ children }) => (
-          <strong className="font-semibold text-slate-900">
+          <strong className="font-semibold text-slate-900 dark:text-white">
             {children}
           </strong>
         ),
 
         em: ({ children }) => (
-          <em className="italic text-slate-600">
+          <em className="italic text-slate-600 dark:text-slate-400">
             {children}
           </em>
         ),
@@ -240,9 +237,9 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
               inline-flex
               items-center
               gap-1
-              text-blue-600
+              text-blue-600 dark:text-blue-400
               font-medium
-              hover:text-blue-700
+              hover:text-blue-700 dark:hover:text-blue-300
               hover:underline
               transition-colors
             "
@@ -261,11 +258,11 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
             className="
               my-4
               border-l-4
-              border-blue-300
-              bg-blue-50/70
+              border-blue-300 dark:border-blue-600
+              bg-blue-50/70 dark:bg-blue-950/40
               rounded-r-xl
               px-4 py-3
-              text-slate-700
+              text-slate-700 dark:text-slate-300
               italic
             "
           >
@@ -278,7 +275,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
         ---------------------------------------------------- */
 
         hr: () => (
-          <hr className="my-6 border-slate-200" />
+          <hr className="my-6 border-slate-200 dark:border-slate-700" />
         ),
 
         /* ----------------------------------------------------
@@ -305,11 +302,11 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
                 className="
                   px-1.5 py-0.5
                   rounded-md
-                  bg-slate-100
-                  border border-slate-200
+                  bg-slate-100 dark:bg-slate-800
+                  border border-slate-200 dark:border-slate-700
                   text-[0.9em]
                   font-mono
-                  text-blue-700
+                  text-blue-700 dark:text-blue-300
                 "
               >
                 {children}
@@ -318,8 +315,16 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
           }
 
           return (
-            <div className="my-5 overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-sm">
-              {/* Cabeçalho do código */}
+            <div
+              className="
+                my-5
+                overflow-hidden
+                rounded-xl
+                border border-slate-800
+                bg-slate-950
+                shadow-sm
+              "
+            >
               <div
                 className="
                   flex items-center justify-between
@@ -342,7 +347,6 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
                 <BotaoCopiar texto={codigo} />
               </div>
 
-              {/* Código */}
               <pre
                 className="
                   overflow-x-auto
@@ -364,7 +368,15 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
         ---------------------------------------------------- */
 
         table: ({ children }) => (
-          <div className="my-5 w-full overflow-x-auto rounded-xl border border-slate-200">
+          <div
+            className="
+              my-5
+              w-full
+              overflow-x-auto
+              rounded-xl
+              border border-slate-200 dark:border-slate-700
+            "
+          >
             <table className="w-full min-w-[500px] border-collapse text-sm">
               {children}
             </table>
@@ -372,19 +384,19 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
         ),
 
         thead: ({ children }) => (
-          <thead className="bg-slate-100">
+          <thead className="bg-slate-100 dark:bg-slate-800">
             {children}
           </thead>
         ),
 
         tbody: ({ children }) => (
-          <tbody className="divide-y divide-slate-200 bg-white">
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900">
             {children}
           </tbody>
         ),
 
         tr: ({ children }) => (
-          <tr className="hover:bg-slate-50 transition-colors">
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors">
             {children}
           </tr>
         ),
@@ -395,8 +407,8 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
               px-4 py-3
               text-left
               font-semibold
-              text-slate-800
-              border-b border-slate-200
+              text-slate-800 dark:text-slate-100
+              border-b border-slate-200 dark:border-slate-700
             "
           >
             {children}
@@ -407,7 +419,7 @@ function MarkdownResposta({ conteudo }: { conteudo: string }) {
           <td
             className="
               px-4 py-3
-              text-slate-700
+              text-slate-700 dark:text-slate-300
               align-top
             "
           >
@@ -430,10 +442,6 @@ export default function ChatTutor({
   onNovaAvaliacao,
   onPrimeiraMensagem,
 }: ChatTutorProps) {
-  /* ============================================================
-     ESTADOS
-  ============================================================ */
-
   const [mensagens, setMensagens] = useState<Mensagem[]>([
     {
       role: "assistant",
@@ -560,9 +568,9 @@ export default function ChatTutor({
 
       onNovaAvaliacao();
 
-      /* --------------------------------------------------------
+      /* ======================================================
          GERA TÍTULO DA CONVERSA
-      -------------------------------------------------------- */
+      ====================================================== */
 
       if (ehPrimeiraMensagem) {
         fetch(
@@ -647,11 +655,10 @@ export default function ChatTutor({
                 "role" in m &&
                 "conteudo" in m
               ) {
-                const mensagem =
-                  m as {
-                    role: string;
-                    conteudo: string;
-                  };
+                const mensagem = m as {
+                  role: string;
+                  conteudo: string;
+                };
 
                 return {
                   role:
@@ -718,7 +725,7 @@ export default function ChatTutor({
         min-w-0
         h-full
         w-full
-        bg-slate-50
+        bg-slate-50 dark:bg-slate-950
         overflow-hidden
         font-sans
       "
@@ -729,25 +736,24 @@ export default function ChatTutor({
 
       <div
         className="
-          bg-white
+          bg-white dark:bg-slate-900
           px-4 sm:px-6
           py-3.5
           flex items-center justify-between
-          border-b border-slate-200
+          border-b border-slate-200 dark:border-slate-800
           z-10
           shrink-0
         "
       >
         <div className="flex items-center gap-3">
-          {/* Avatar */}
           <div className="relative">
             <div
               className="
-                bg-blue-50
+                bg-blue-50 dark:bg-blue-950/50
                 p-2.5
                 rounded-xl
-                text-blue-600
-                border border-blue-100
+                text-blue-600 dark:text-blue-400
+                border border-blue-100 dark:border-blue-900
                 shadow-sm
               "
             >
@@ -764,18 +770,17 @@ export default function ChatTutor({
                 bg-emerald-500
                 rounded-full
                 border-2
-                border-white
+                border-white dark:border-slate-900
               "
             />
           </div>
 
-          {/* Informações */}
           <div>
-            <h2 className="text-slate-800 font-semibold text-sm sm:text-base">
+            <h2 className="text-slate-800 dark:text-white font-semibold text-sm sm:text-base">
               TutorAI Pro
             </h2>
 
-            <p className="text-slate-500 text-xs flex items-center gap-1">
+            <p className="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
               <Sparkles size={12} />
 
               <span>
@@ -796,8 +801,8 @@ export default function ChatTutor({
 
       <div
         className="
-          bg-white
-          border-b border-slate-200
+          bg-white dark:bg-slate-900
+          border-b border-slate-200 dark:border-slate-800
           px-4
           py-2.5
           flex gap-2
@@ -808,7 +813,8 @@ export default function ChatTutor({
           scrollbar-thin
         "
       >
-        {/* Modo Tutor */}
+        {/* MODO TUTOR */}
+
         <button
           type="button"
           onClick={() => setModo("tutor")}
@@ -821,8 +827,8 @@ export default function ChatTutor({
             shrink-0
             ${
               modo === "tutor"
-                ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+                ? "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm"
+                : "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent"
             }
           `}
         >
@@ -830,7 +836,8 @@ export default function ChatTutor({
           Modo Tutor
         </button>
 
-        {/* Exercícios */}
+        {/* EXERCÍCIOS */}
+
         <button
           type="button"
           onClick={() =>
@@ -845,8 +852,8 @@ export default function ChatTutor({
             shrink-0
             ${
               modo === "exercicios"
-                ? "bg-amber-50 text-amber-700 border border-amber-200 shadow-sm"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+                ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-sm"
+                : "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent"
             }
           `}
         >
@@ -854,7 +861,8 @@ export default function ChatTutor({
           Exercícios
         </button>
 
-        {/* Revisão */}
+        {/* REVISÃO */}
+
         <button
           type="button"
           onClick={() =>
@@ -869,8 +877,8 @@ export default function ChatTutor({
             shrink-0
             ${
               modo === "revisao"
-                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm"
+                : "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent"
             }
           `}
         >
@@ -925,10 +933,6 @@ export default function ChatTutor({
                   }
                 `}
               >
-                {/* ==================================================
-                    AVATAR DA IA
-                ================================================== */}
-
                 {!ehUsuario && (
                   <div
                     className="
@@ -948,10 +952,6 @@ export default function ChatTutor({
                     />
                   </div>
                 )}
-
-                {/* ==================================================
-                    MENSAGEM DO USUÁRIO
-                ================================================== */}
 
                 {ehUsuario ? (
                   <div
@@ -977,14 +977,10 @@ export default function ChatTutor({
                     {msg.conteudo}
                   </div>
                 ) : (
-                  /* ==================================================
-                     MENSAGEM DA IA
-                  ================================================== */
-
                   <div
                     className="
                       min-w-0
-                      max-w-[calc(100%-3rem)]
+                      max-w-full
                       sm:max-w-[85%]
                       lg:max-w-[82%]
                     "
@@ -992,8 +988,8 @@ export default function ChatTutor({
                     {!mensagemVazia && (
                       <div
                         className="
-                          bg-white
-                          border border-slate-200
+                          bg-white dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-800
                           rounded-2xl
                           rounded-tl-md
                           px-4 sm:px-6
@@ -1008,7 +1004,7 @@ export default function ChatTutor({
                           className="
                             max-w-none
                             break-words
-                            text-slate-700
+                            text-slate-700 dark:text-slate-300
                           "
                         >
                           <MarkdownResposta
@@ -1020,13 +1016,12 @@ export default function ChatTutor({
                       </div>
                     )}
 
-                    {/* Indicador durante streaming */}
                     {mensagemVazia &&
                       !loading && (
                         <div
                           className="
-                            bg-white
-                            border border-slate-200
+                            bg-white dark:bg-slate-900
+                            border border-slate-200 dark:border-slate-800
                             rounded-2xl
                             rounded-tl-md
                             px-5 py-4
@@ -1035,6 +1030,7 @@ export default function ChatTutor({
                         >
                           <div className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
+
                             <span
                               className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
                               style={{
@@ -1042,6 +1038,7 @@ export default function ChatTutor({
                                   "0.15s",
                               }}
                             />
+
                             <span
                               className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
                               style={{
@@ -1058,9 +1055,7 @@ export default function ChatTutor({
             );
           })}
 
-          {/* ======================================================
-              LOADING
-          ====================================================== */}
+          {/* LOADING */}
 
           {loading && (
             <div className="flex gap-3 w-full justify-start items-center">
@@ -1083,8 +1078,8 @@ export default function ChatTutor({
 
               <div
                 className="
-                  bg-white
-                  border border-slate-200
+                  bg-white dark:bg-slate-900
+                  border border-slate-200 dark:border-slate-800
                   rounded-2xl
                   rounded-tl-md
                   px-5 py-4
@@ -1127,12 +1122,12 @@ export default function ChatTutor({
       <div
         className="
           shrink-0
-          bg-white
+          bg-white dark:bg-slate-900
           px-3 sm:px-5
           pt-3
           pb-3 sm:pb-5
           flex justify-center
-          border-t border-slate-200
+          border-t border-slate-200 dark:border-slate-800
         "
       >
         <form
@@ -1153,8 +1148,8 @@ export default function ChatTutor({
             placeholder={`Pergunte ao tutor (Modo ${modo})...`}
             className="
               w-full
-              bg-slate-50
-              border border-slate-300
+              bg-slate-50 dark:bg-slate-800
+              border border-slate-300 dark:border-slate-700
               rounded-2xl
               pl-5
               pr-14
@@ -1164,7 +1159,7 @@ export default function ChatTutor({
               focus:border-blue-500
               focus:ring-4
               focus:ring-blue-500/10
-              text-slate-800
+              text-slate-800 dark:text-slate-100
               text-sm sm:text-base
               placeholder:text-slate-400
               transition-all
@@ -1188,6 +1183,7 @@ export default function ChatTutor({
               hover:bg-blue-700
               active:scale-95
               disabled:bg-slate-300
+              dark:disabled:bg-slate-700
               disabled:text-slate-500
               disabled:cursor-not-allowed
               transition-all

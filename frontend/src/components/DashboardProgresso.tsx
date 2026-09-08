@@ -34,19 +34,27 @@ export default function DashboardProgresso({
   refreshTrigger,
   onRevisarTopico,
 }: DashboardProgressoProps) {
-  const [metricas, setMetricas] = useState<MetricaProgresso[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [metricas, setMetricas] = useState<
+    MetricaProgresso[]
+  >([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
     async function carregarDados() {
       try {
         setLoading(true);
 
-        const dados = await getMetricasAluno(alunoId);
+        const dados =
+          await getMetricasAluno(alunoId);
 
         setMetricas(dados);
       } catch (error) {
-        console.error("Erro ao carregar métricas:", error);
+        console.error(
+          "Erro ao carregar métricas:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -57,7 +65,14 @@ export default function DashboardProgresso({
 
   if (loading) {
     return (
-      <div className="p-6 text-center text-slate-400 animate-pulse">
+      <div
+        className="
+          p-6
+          text-center
+          text-slate-400 dark:text-slate-500
+          animate-pulse
+        "
+      >
         Carregando métricas...
       </div>
     );
@@ -65,7 +80,13 @@ export default function DashboardProgresso({
 
   if (metricas.length === 0) {
     return (
-      <div className="p-6 text-center text-slate-400">
+      <div
+        className="
+          p-6
+          text-center
+          text-slate-400 dark:text-slate-500
+        "
+      >
         Nenhum dado encontrado.
       </div>
     );
@@ -74,23 +95,28 @@ export default function DashboardProgresso({
   const disciplinaAtual = metricas[0];
 
   const dadosGrafico =
-    disciplinaAtual.historico_desempenho?.map((avaliacao, index) => ({
-      tentativa: `Sessão ${index + 1}`,
-      dominio: avaliacao.nivel_dominio,
-      topico: avaliacao.topico_especifico,
-    })) || [];
+    disciplinaAtual.historico_desempenho?.map(
+      (avaliacao, index) => ({
+        tentativa: `Sessão ${index + 1}`,
+        dominio: avaliacao.nivel_dominio,
+        topico: avaliacao.topico_especifico,
+      })
+    ) || [];
 
-  const topicosParaRevisao = metricas.filter(
-    (m) => m.nivel_dominio < 70 || m.erros_consecutivos > 0,
-  );
+  const topicosParaRevisao =
+    metricas.filter(
+      (m) =>
+        m.nivel_dominio < 70 ||
+        m.erros_consecutivos > 0
+    );
 
   return (
     <div
       className="
-        bg-white
+        bg-white dark:bg-slate-900
         rounded-2xl
         shadow-sm
-        border border-slate-100
+        border border-slate-100 dark:border-slate-800
         w-full
         min-w-0
         max-w-full
@@ -102,6 +128,7 @@ export default function DashboardProgresso({
       "
     >
       <div className="p-5 sm:p-6 lg:p-8 w-full min-w-0">
+
         {/* =========================================================
             CABEÇALHO
         ========================================================= */}
@@ -109,11 +136,11 @@ export default function DashboardProgresso({
         <div className="flex items-start gap-3 mb-6 min-w-0">
           <div
             className="
-              bg-blue-50
+              bg-blue-50 dark:bg-blue-950/50
               p-2.5
               rounded-xl
-              text-blue-600
-              border border-blue-100
+              text-blue-600 dark:text-blue-400
+              border border-blue-100 dark:border-blue-900
               shrink-0
             "
           >
@@ -126,30 +153,41 @@ export default function DashboardProgresso({
                 text-lg
                 sm:text-xl
                 font-bold
-                text-slate-800
+                text-slate-800 dark:text-white
                 tracking-tight
                 wrap-break-word
               "
             >
-              Evolução em {disciplinaAtual.topico}
+              Evolução em{" "}
+              {disciplinaAtual.topico}
             </h2>
 
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
               Visão geral do seu aprendizado
             </p>
           </div>
         </div>
 
-       {/* =========================================================
+        {/* =========================================================
             CARDS SUPERIORES
         ========================================================= */}
 
-        <div className="flex flex-col gap-3 mb-8 w-full min-w-0">
+        <div
+          className="
+            flex
+            flex-col
+            gap-3
+            mb-8
+            w-full
+            min-w-0
+          "
+        >
           {/* DOMÍNIO ATUAL */}
+
           <div
             className="
-              bg-white
-              border border-slate-200
+              bg-white dark:bg-slate-900
+              border border-slate-200 dark:border-slate-800
               rounded-2xl
               p-4
               flex
@@ -162,14 +200,17 @@ export default function DashboardProgresso({
           >
             <div
               className="
-                bg-blue-50
+                bg-blue-50 dark:bg-blue-950/50
                 p-3
                 rounded-xl
-                text-blue-600
+                text-blue-600 dark:text-blue-400
                 shrink-0
               "
             >
-              <Target size={22} strokeWidth={2} />
+              <Target
+                size={22}
+                strokeWidth={2}
+              />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -177,7 +218,7 @@ export default function DashboardProgresso({
                 className="
                   text-xs
                   font-semibold
-                  text-slate-500
+                  text-slate-500 dark:text-slate-400
                   block
                   whitespace-nowrap
                 "
@@ -190,7 +231,7 @@ export default function DashboardProgresso({
                   className="
                     text-2xl
                     font-black
-                    text-slate-800
+                    text-slate-800 dark:text-white
                     leading-tight
                   "
                 >
@@ -201,7 +242,7 @@ export default function DashboardProgresso({
                   className="
                     text-sm
                     font-semibold
-                    text-slate-400
+                    text-slate-400 dark:text-slate-500
                   "
                 >
                   %
@@ -211,10 +252,11 @@ export default function DashboardProgresso({
           </div>
 
           {/* DIFICULDADES RECENTES */}
+
           <div
             className="
-              bg-white
-              border border-slate-200
+              bg-white dark:bg-slate-900
+              border border-slate-200 dark:border-slate-800
               rounded-2xl
               p-4
               flex
@@ -227,14 +269,17 @@ export default function DashboardProgresso({
           >
             <div
               className="
-                bg-red-50
+                bg-red-50 dark:bg-red-950/40
                 p-3
                 rounded-xl
-                text-red-500
+                text-red-500 dark:text-red-400
                 shrink-0
               "
             >
-              <AlertTriangle size={22} strokeWidth={2} />
+              <AlertTriangle
+                size={22}
+                strokeWidth={2}
+              />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -242,7 +287,7 @@ export default function DashboardProgresso({
                 className="
                   text-xs
                   font-semibold
-                  text-slate-500
+                  text-slate-500 dark:text-slate-400
                   block
                   whitespace-nowrap
                 "
@@ -255,18 +300,20 @@ export default function DashboardProgresso({
                   className="
                     text-2xl
                     font-black
-                    text-slate-800
+                    text-slate-800 dark:text-white
                     leading-tight
                   "
                 >
-                  {disciplinaAtual.erros_consecutivos}
+                  {
+                    disciplinaAtual.erros_consecutivos
+                  }
                 </span>
 
                 <span
                   className="
                     text-sm
                     font-medium
-                    text-slate-400
+                    text-slate-400 dark:text-slate-500
                   "
                 >
                   erros
@@ -274,7 +321,7 @@ export default function DashboardProgresso({
               </div>
             </div>
           </div>
-        </div>  
+        </div>
 
         {/* =========================================================
             GRÁFICO
@@ -286,16 +333,19 @@ export default function DashboardProgresso({
             min-w-0
             h-64
             sm:h-72
-            bg-slate-50/50
+            bg-slate-50/50 dark:bg-slate-800/40
             p-3
             sm:p-4
             rounded-2xl
-            border border-slate-100
+            border border-slate-100 dark:border-slate-800
             mb-8
             overflow-hidden
           "
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+          >
             <LineChart
               data={dadosGrafico}
               margin={{
@@ -305,13 +355,17 @@ export default function DashboardProgresso({
                 bottom: 0,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#475569"
+                opacity={0.35}
+              />
 
               <XAxis
                 dataKey="tentativa"
                 tick={{
                   fontSize: 11,
-                  fill: "#64748b",
+                  fill: "#94a3b8",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -321,7 +375,7 @@ export default function DashboardProgresso({
                 domain={[0, 100]}
                 tick={{
                   fontSize: 11,
-                  fill: "#64748b",
+                  fill: "#94a3b8",
                 }}
                 axisLine={false}
                 tickLine={false}
@@ -330,10 +384,21 @@ export default function DashboardProgresso({
               <Tooltip
                 contentStyle={{
                   borderRadius: "12px",
-                  border: "1px solid #e2e8f0",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                  border:
+                    "1px solid #334155",
+                  backgroundColor:
+                    "#0f172a",
+                  color: "#f8fafc",
+                  boxShadow:
+                    "0 4px 12px rgba(0,0,0,0.25)",
                 }}
-                formatter={(value) => [`${value}%`, "Domínio"]}
+                labelStyle={{
+                  color: "#cbd5e1",
+                }}
+                formatter={(value) => [
+                  `${value}%`,
+                  "Domínio",
+                ]}
               />
 
               <Line
@@ -360,7 +425,7 @@ export default function DashboardProgresso({
         <div
           className="
             border-t
-            border-slate-100
+            border-slate-100 dark:border-slate-800
             pt-7
             w-full
             min-w-0
@@ -377,10 +442,10 @@ export default function DashboardProgresso({
           >
             <div
               className="
-                bg-amber-50
+                bg-amber-50 dark:bg-amber-950/40
                 p-2
                 rounded-lg
-                text-amber-500
+                text-amber-500 dark:text-amber-400
                 shrink-0
               "
             >
@@ -391,7 +456,7 @@ export default function DashboardProgresso({
               className="
                 text-sm
                 font-bold
-                text-slate-700
+                text-slate-700 dark:text-slate-200
                 uppercase
                 tracking-wider
                 truncate
@@ -403,20 +468,26 @@ export default function DashboardProgresso({
 
           <div className="space-y-4 w-full min-w-0">
             {topicosParaRevisao.length > 0 ? (
-              topicosParaRevisao.map((metrica, idx) => {
-                const dominioBaixo = metrica.nivel_dominio < 50;
+              topicosParaRevisao.map(
+                (metrica, idx) => {
+                  const dominioBaixo =
+                    metrica.nivel_dominio < 50;
 
-                const ultimosErros = metrica.historico_desempenho
-                  ?.filter((h) => h.falha_conceitual)
-                  .slice(-1);
+                  const ultimosErros =
+                    metrica.historico_desempenho
+                      ?.filter(
+                        (h) =>
+                          h.falha_conceitual
+                      )
+                      .slice(-1);
 
-                return (
-                  <div
-                    key={idx}
-                    className="
+                  return (
+                    <div
+                      key={idx}
+                      className="
                         relative
-                        bg-white
-                        border border-slate-200
+                        bg-white dark:bg-slate-900
+                        border border-slate-200 dark:border-slate-800
                         rounded-2xl
                         p-4
                         sm:p-5
@@ -426,29 +497,34 @@ export default function DashboardProgresso({
                         gap-3
                         transition-all
                         hover:border-blue-200
+                        dark:hover:border-blue-800
                         hover:shadow-md
                         overflow-hidden
                         min-w-0
                         w-full
                       "
-                  >
-                    {/* FAIXA LATERAL */}
+                    >
+                      {/* FAIXA LATERAL */}
 
-                    <div
-                      className={`
+                      <div
+                        className={`
                           absolute
                           left-0
                           top-0
                           bottom-0
                           w-1.5
-                          ${dominioBaixo ? "bg-red-500" : "bg-amber-400"}
+                          ${
+                            dominioBaixo
+                              ? "bg-red-500"
+                              : "bg-amber-400"
+                          }
                         `}
-                    />
+                      />
 
-                    {/* TÍTULO + PORCENTAGEM */}
+                      {/* TÍTULO + PORCENTAGEM */}
 
-                    <div
-                      className="
+                      <div
+                        className="
                           flex
                           items-center
                           justify-between
@@ -457,99 +533,113 @@ export default function DashboardProgresso({
                           min-w-0
                           w-full
                         "
-                    >
-                      <span
-                        className="
+                      >
+                        <span
+                          className="
                             font-bold
-                            text-slate-800
+                            text-slate-800 dark:text-slate-100
                             text-sm
                             sm:text-base
                             wrap-break-word
                             min-w-0
                             flex-1
                           "
-                      >
-                        {metrica.topico}
-                      </span>
+                        >
+                          {metrica.topico}
+                        </span>
 
-                      <span
-                        className={`
+                        <span
+                          className={`
                             font-black
                             text-sm
                             sm:text-base
                             shrink-0
-                            ${dominioBaixo ? "text-red-500" : "text-amber-500"}
+                            ${
+                              dominioBaixo
+                                ? "text-red-500 dark:text-red-400"
+                                : "text-amber-500 dark:text-amber-400"
+                            }
                           `}
-                      >
-                        {metrica.nivel_dominio}%
-                      </span>
-                    </div>
+                        >
+                          {metrica.nivel_dominio}%
+                        </span>
+                      </div>
 
-                    {/* BARRA DE PROGRESSO */}
+                      {/* BARRA DE PROGRESSO */}
 
-                    <div
-                      className="
-                          pl-2
-                          w-full
-                        "
-                    >
-                      <div
-                        className="
+                      <div className="pl-2 w-full">
+                        <div
+                          className="
                             w-full
-                            bg-slate-100
+                            bg-slate-100 dark:bg-slate-800
                             rounded-full
                             h-2
                             overflow-hidden
                           "
-                      >
-                        <div
-                          className={`
+                        >
+                          <div
+                            className={`
                               h-2
                               rounded-full
                               transition-all
                               duration-1000
-                              ${dominioBaixo ? "bg-red-500" : "bg-amber-400"}
+                              ${
+                                dominioBaixo
+                                  ? "bg-red-500"
+                                  : "bg-amber-400"
+                              }
                             `}
-                          style={{
-                            width: `${Math.min(
-                              Math.max(metrica.nivel_dominio, 0),
-                              100,
-                            )}%`,
-                          }}
-                        />
+                            style={{
+                              width: `${Math.min(
+                                Math.max(
+                                  metrica.nivel_dominio,
+                                  0
+                                ),
+                                100
+                              )}%`,
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* ÚLTIMO ERRO */}
+                      {/* ÚLTIMO ERRO */}
 
-                    {ultimosErros && ultimosErros.length > 0 && (
-                      <div className="pl-2 min-w-0">
-                        {ultimosErros.map((erro, i) => (
-                          <p
-                            key={i}
-                            className="
-            text-xs
-            sm:text-sm
-            text-slate-500
-            leading-relaxed
-            wrap-break-word
-          "
-                          >
-                            <span className="font-semibold text-slate-600">
-                              Falha conceitual identificada.
-                            </span>
-                          </p>
-                        ))}
-                      </div>
-                    )}
+                      {ultimosErros &&
+                        ultimosErros.length > 0 && (
+                          <div className="pl-2 min-w-0">
+                            {ultimosErros.map(
+                              (_erro, i) => (
+                                <p
+                                  key={i}
+                                  className="
+                                    text-xs
+                                    sm:text-sm
+                                    text-slate-500 dark:text-slate-400
+                                    leading-relaxed
+                                    wrap-break-word
+                                  "
+                                >
+                                  <span className="font-semibold text-slate-600 dark:text-slate-300">
+                                    Falha conceitual
+                                    identificada.
+                                  </span>
+                                </p>
+                              )
+                            )}
+                          </div>
+                        )}
 
-                    {/* BOTÃO */}
+                      {/* BOTÃO */}
 
-                    <div className="pl-2 w-full">
-                      <button
-                        type="button"
-                        onClick={() => onRevisarTopico?.(metrica.topico)}
-                        className="
+                      <div className="pl-2 w-full">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onRevisarTopico?.(
+                              metrica.topico
+                            )
+                          }
+                          className="
                             w-full
                             flex
                             items-center
@@ -557,34 +647,37 @@ export default function DashboardProgresso({
                             gap-2
                             py-2.5
                             px-4
-                            bg-slate-50
-                            hover:bg-blue-50
-                            border border-slate-200
-                            hover:border-blue-200
-                            hover:text-blue-700
-                            text-slate-600
+                            bg-slate-50 dark:bg-slate-800
+                            hover:bg-blue-50 dark:hover:bg-blue-950/40
+                            border border-slate-200 dark:border-slate-700
+                            hover:border-blue-200 dark:hover:border-blue-800
+                            hover:text-blue-700 dark:hover:text-blue-300
+                            text-slate-600 dark:text-slate-300
                             rounded-xl
                             text-sm
                             font-bold
                             transition-all
                             shadow-sm
                           "
-                      >
-                        <BookOpen size={16} />
+                        >
+                          <BookOpen size={16} />
 
-                        <span>Revisar Agora</span>
-                      </button>
+                          <span>
+                            Revisar Agora
+                          </span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                }
+              )
             ) : (
               <div
                 className="
-                  bg-emerald-50/50
+                  bg-emerald-50/50 dark:bg-emerald-950/30
                   p-5
                   rounded-2xl
-                  border border-emerald-100
+                  border border-emerald-100 dark:border-emerald-900
                   flex
                   items-center
                   gap-3
@@ -594,10 +687,10 @@ export default function DashboardProgresso({
               >
                 <div
                   className="
-                    bg-emerald-100
+                    bg-emerald-100 dark:bg-emerald-900/50
                     p-2
                     rounded-full
-                    text-emerald-600
+                    text-emerald-600 dark:text-emerald-400
                     shrink-0
                   "
                 >
@@ -607,12 +700,14 @@ export default function DashboardProgresso({
                 <p
                   className="
                     text-sm
-                    text-emerald-700
+                    text-emerald-700 dark:text-emerald-300
                     font-medium
                     leading-relaxed
                   "
                 >
-                  Tudo sob controle! Não há pendências de revisão no momento.
+                  Tudo sob controle! Não há
+                  pendências de revisão no
+                  momento.
                 </p>
               </div>
             )}
