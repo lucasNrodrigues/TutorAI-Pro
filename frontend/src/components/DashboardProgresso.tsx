@@ -140,46 +140,36 @@ export default function DashboardProgresso({
           </div>
         </div>
 
-        {/* =========================================================
+       {/* =========================================================
             CARDS SUPERIORES
         ========================================================= */}
 
-        <div
-          className="
-            grid
-            grid-cols-1
-            lg:grid-cols-2
-            gap-3
-            mb-8
-            w-full
-            min-w-0
-          "
-        >
+        <div className="flex flex-col gap-3 mb-8 w-full min-w-0">
           {/* DOMÍNIO ATUAL */}
           <div
             className="
               bg-white
               border border-slate-200
               rounded-2xl
-              p-3.5 sm:p-4
+              p-4
               flex
               items-center
-              gap-3
+              gap-3.5
               min-w-0
               w-full
-              overflow-hidden
+              shadow-sm
             "
           >
             <div
               className="
                 bg-blue-50
-                p-2.5 sm:p-3
+                p-3
                 rounded-xl
                 text-blue-600
                 shrink-0
               "
             >
-              <Target size={20} strokeWidth={2} />
+              <Target size={22} strokeWidth={2} />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -189,7 +179,7 @@ export default function DashboardProgresso({
                   font-semibold
                   text-slate-500
                   block
-                  truncate
+                  whitespace-nowrap
                 "
               >
                 Domínio Atual
@@ -198,7 +188,7 @@ export default function DashboardProgresso({
               <div className="flex items-baseline gap-1 min-w-0">
                 <span
                   className="
-                    text-xl sm:text-2xl
+                    text-2xl
                     font-black
                     text-slate-800
                     leading-tight
@@ -209,7 +199,7 @@ export default function DashboardProgresso({
 
                 <span
                   className="
-                    text-xs sm:text-sm
+                    text-sm
                     font-semibold
                     text-slate-400
                   "
@@ -226,25 +216,25 @@ export default function DashboardProgresso({
               bg-white
               border border-slate-200
               rounded-2xl
-              p-3.5 sm:p-4
+              p-4
               flex
               items-center
-              gap-3
+              gap-3.5
               min-w-0
               w-full
-              overflow-hidden
+              shadow-sm
             "
           >
             <div
               className="
                 bg-red-50
-                p-2.5 sm:p-3
+                p-3
                 rounded-xl
                 text-red-500
                 shrink-0
               "
             >
-              <AlertTriangle size={20} strokeWidth={2} />
+              <AlertTriangle size={22} strokeWidth={2} />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -254,7 +244,7 @@ export default function DashboardProgresso({
                   font-semibold
                   text-slate-500
                   block
-                  truncate
+                  whitespace-nowrap
                 "
               >
                 Dificuldades Recentes
@@ -263,7 +253,7 @@ export default function DashboardProgresso({
               <div className="flex items-baseline gap-1 min-w-0">
                 <span
                   className="
-                    text-xl sm:text-2xl
+                    text-2xl
                     font-black
                     text-slate-800
                     leading-tight
@@ -274,7 +264,7 @@ export default function DashboardProgresso({
 
                 <span
                   className="
-                    text-xs sm:text-sm
+                    text-sm
                     font-medium
                     text-slate-400
                   "
@@ -284,7 +274,7 @@ export default function DashboardProgresso({
               </div>
             </div>
           </div>
-        </div>
+        </div>  
 
         {/* =========================================================
             GRÁFICO
