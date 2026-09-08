@@ -250,9 +250,9 @@ export default function ChatTutor({
           const dados = await res.json();
 
           const mensagensFormatadas: Mensagem[] =
-            dados.map((m: any) => ({
-              role: m.role,
-              conteudo: m.conteudo,
+            dados.map((m: unknown) => ({
+              role: (m as { role: string }).role,
+              conteudo: (m as { conteudo: string }).conteudo,
             }));
 
           if (mensagensFormatadas.length > 0) {
@@ -578,7 +578,7 @@ export default function ChatTutor({
 
               {/* BALÃO */}
 
-              {msg.conteudo.trim() !== "" && (
+             {(msg.conteudo.trim() !== "" || (loading && msg.role === "assistant")) && (
                 <div
                   className={`
                     max-w-[90%]
