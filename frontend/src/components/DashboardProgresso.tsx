@@ -74,18 +74,14 @@ export default function DashboardProgresso({
   const disciplinaAtual = metricas[0];
 
   const dadosGrafico =
-    disciplinaAtual.historico_desempenho?.map(
-      (avaliacao, index) => ({
-        tentativa: `Sessão ${index + 1}`,
-        dominio: avaliacao.nivel_dominio,
-        topico: avaliacao.topico_especifico,
-      })
-    ) || [];
+    disciplinaAtual.historico_desempenho?.map((avaliacao, index) => ({
+      tentativa: `Sessão ${index + 1}`,
+      dominio: avaliacao.nivel_dominio,
+      topico: avaliacao.topico_especifico,
+    })) || [];
 
   const topicosParaRevisao = metricas.filter(
-    (m) =>
-      m.nivel_dominio < 70 ||
-      m.erros_consecutivos > 0
+    (m) => m.nivel_dominio < 70 || m.erros_consecutivos > 0,
   );
 
   return (
@@ -106,7 +102,6 @@ export default function DashboardProgresso({
       "
     >
       <div className="p-5 sm:p-6 lg:p-8 w-full min-w-0">
-
         {/* =========================================================
             CABEÇALHO
         ========================================================= */}
@@ -186,10 +181,7 @@ export default function DashboardProgresso({
                 shrink-0
               "
             >
-              <Target
-                size={23}
-                strokeWidth={2}
-              />
+              <Target size={23} strokeWidth={2} />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -259,10 +251,7 @@ export default function DashboardProgresso({
                 shrink-0
               "
             >
-              <AlertTriangle
-                size={23}
-                strokeWidth={2}
-              />
+              <AlertTriangle size={23} strokeWidth={2} />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -326,10 +315,7 @@ export default function DashboardProgresso({
             overflow-hidden
           "
         >
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-          >
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={dadosGrafico}
               margin={{
@@ -339,10 +325,7 @@ export default function DashboardProgresso({
                 bottom: 0,
               }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#e2e8f0"
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
 
               <XAxis
                 dataKey="tentativa"
@@ -368,13 +351,9 @@ export default function DashboardProgresso({
                 contentStyle={{
                   borderRadius: "12px",
                   border: "1px solid #e2e8f0",
-                  boxShadow:
-                    "0 4px 12px rgba(0,0,0,0.08)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                 }}
-                formatter={(value) => [
-                  `${value}%`,
-                  "Domínio",
-                ]}
+                formatter={(value) => [`${value}%`, "Domínio"]}
               />
 
               <Line
@@ -443,26 +422,18 @@ export default function DashboardProgresso({
           </div>
 
           <div className="space-y-4 w-full min-w-0">
-
             {topicosParaRevisao.length > 0 ? (
-              topicosParaRevisao.map(
-                (metrica, idx) => {
-                  const dominioBaixo =
-                    metrica.nivel_dominio < 50;
+              topicosParaRevisao.map((metrica, idx) => {
+                const dominioBaixo = metrica.nivel_dominio < 50;
 
-                  const ultimosErros =
-                    metrica.historico_desempenho
-                      ?.filter(
-                        (h) =>
-                          h.falha_conceitual ===
-                            true
-                      )
-                      .slice(-1);
+                const ultimosErros = metrica.historico_desempenho
+                  ?.filter((h) => h.falha_conceitual)
+                  .slice(-1);
 
-                  return (
-                    <div
-                      key={idx}
-                      className="
+                return (
+                  <div
+                    key={idx}
+                    className="
                         relative
                         bg-white
                         border border-slate-200
@@ -480,28 +451,24 @@ export default function DashboardProgresso({
                         min-w-0
                         w-full
                       "
-                    >
-                      {/* FAIXA LATERAL */}
+                  >
+                    {/* FAIXA LATERAL */}
 
-                      <div
-                        className={`
+                    <div
+                      className={`
                           absolute
                           left-0
                           top-0
                           bottom-0
                           w-1.5
-                          ${
-                            dominioBaixo
-                              ? "bg-red-500"
-                              : "bg-amber-400"
-                          }
+                          ${dominioBaixo ? "bg-red-500" : "bg-amber-400"}
                         `}
-                      />
+                    />
 
-                      {/* TÍTULO + PORCENTAGEM */}
+                    {/* TÍTULO + PORCENTAGEM */}
 
-                      <div
-                        className="
+                    <div
+                      className="
                           flex
                           items-center
                           justify-between
@@ -510,9 +477,9 @@ export default function DashboardProgresso({
                           min-w-0
                           w-full
                         "
-                      >
-                        <span
-                          className="
+                    >
+                      <span
+                        className="
                             font-bold
                             text-slate-800
                             text-sm
@@ -521,112 +488,88 @@ export default function DashboardProgresso({
                             min-w-0
                             flex-1
                           "
-                        >
-                          {metrica.topico}
-                        </span>
+                      >
+                        {metrica.topico}
+                      </span>
 
-                        <span
-                          className={`
+                      <span
+                        className={`
                             font-black
                             text-sm
                             sm:text-base
                             shrink-0
-                            ${
-                              dominioBaixo
-                                ? "text-red-500"
-                                : "text-amber-500"
-                            }
+                            ${dominioBaixo ? "text-red-500" : "text-amber-500"}
                           `}
-                        >
-                          {metrica.nivel_dominio}%
-                        </span>
-                      </div>
+                      >
+                        {metrica.nivel_dominio}%
+                      </span>
+                    </div>
 
-                      {/* BARRA DE PROGRESSO */}
+                    {/* BARRA DE PROGRESSO */}
 
-                      <div
-                        className="
+                    <div
+                      className="
                           pl-2
                           w-full
                         "
-                      >
-                        <div
-                          className="
+                    >
+                      <div
+                        className="
                             w-full
                             bg-slate-100
                             rounded-full
                             h-2
                             overflow-hidden
                           "
-                        >
-                          <div
-                            className={`
+                      >
+                        <div
+                          className={`
                               h-2
                               rounded-full
                               transition-all
                               duration-1000
-                              ${
-                                dominioBaixo
-                                  ? "bg-red-500"
-                                  : "bg-amber-400"
-                              }
+                              ${dominioBaixo ? "bg-red-500" : "bg-amber-400"}
                             `}
-                            style={{
-                              width: `${Math.min(
-                                Math.max(
-                                  metrica.nivel_dominio,
-                                  0
-                                ),
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </div>
+                          style={{
+                            width: `${Math.min(
+                              Math.max(metrica.nivel_dominio, 0),
+                              100,
+                            )}%`,
+                          }}
+                        />
                       </div>
+                    </div>
 
-                      {/* ÚLTIMO ERRO */}
+                    {/* ÚLTIMO ERRO */}
 
-                      {ultimosErros &&
-                        ultimosErros.length > 0 && (
-                          <div className="pl-2 min-w-0">
-                            {ultimosErros.map(
-  (
-    erro,
-    i
-  ) => (
-                                <p
-                                  key={i}
-                                  className="
-                                    text-xs
-                                    sm:text-sm
-                                    text-slate-500
-                                    leading-relaxed
-                                    wrap-break-word
-                                  "
-                                >
-                                  <span className="font-semibold text-slate-600">
-                                    Último erro:
-                                  </span>{" "}
-                                  {
-                                    erro.falha_conceitual
-                                  }
-                                </p>
-                              )
-                            )}
-                          </div>
-                        )}
+                    {ultimosErros && ultimosErros.length > 0 && (
+                      <div className="pl-2 min-w-0">
+                        {ultimosErros.map((erro, i) => (
+                          <p
+                            key={i}
+                            className="
+            text-xs
+            sm:text-sm
+            text-slate-500
+            leading-relaxed
+            wrap-break-word
+          "
+                          >
+                            <span className="font-semibold text-slate-600">
+                              Falha conceitual identificada.
+                            </span>
+                          </p>
+                        ))}
+                      </div>
+                    )}
 
-                      {/* BOTÃO */}
+                    {/* BOTÃO */}
 
-                      <div className="pl-2 w-full">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onRevisarTopico?.(
-                              metrica.topico
-                            )
-                          }
-                          className="
+                    <div className="pl-2 w-full">
+                      <button
+                        type="button"
+                        onClick={() => onRevisarTopico?.(metrica.topico)}
+                        className="
                             w-full
                             flex
                             items-center
@@ -646,18 +589,15 @@ export default function DashboardProgresso({
                             transition-all
                             shadow-sm
                           "
-                        >
-                          <BookOpen size={16} />
+                      >
+                        <BookOpen size={16} />
 
-                          <span>
-                            Revisar Agora
-                          </span>
-                        </button>
-                      </div>
+                        <span>Revisar Agora</span>
+                      </button>
                     </div>
-                  );
-                }
-              )
+                  </div>
+                );
+              })
             ) : (
               <div
                 className="
@@ -692,9 +632,7 @@ export default function DashboardProgresso({
                     leading-relaxed
                   "
                 >
-                  Tudo sob controle! Não há
-                  pendências de revisão no
-                  momento.
+                  Tudo sob controle! Não há pendências de revisão no momento.
                 </p>
               </div>
             )}
