@@ -453,10 +453,9 @@ export default function DashboardProgresso({
                   const ultimosErros =
                     metrica.historico_desempenho
                       ?.filter(
-                        (h: any) =>
-                          h.falha_conceitual &&
-                          h.falha_conceitual !==
-                            "null"
+                        (h) =>
+                          h.falha_conceitual ===
+                            true
                       )
                       .slice(-1);
 
@@ -591,10 +590,10 @@ export default function DashboardProgresso({
                         ultimosErros.length > 0 && (
                           <div className="pl-2 min-w-0">
                             {ultimosErros.map(
-                              (
-                                erro: any,
-                                i: number
-                              ) => (
+  (
+    erro,
+    i
+  ) => (
                                 <p
                                   key={i}
                                   className="

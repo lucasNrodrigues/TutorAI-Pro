@@ -1,4 +1,5 @@
 export interface Avaliacao {
+  falha_conceitual: boolean;
   demonstrou_entendimento: boolean;
   nivel_dominio: number;
   topico_especifico: string;
