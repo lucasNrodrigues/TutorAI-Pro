@@ -576,9 +576,8 @@ export default function ChatTutor({
                 </div>
               )}
 
-              {/* BALÃO */}
-
-             {(msg.conteudo.trim() !== "" || (loading && msg.role === "assistant")) && (
+             {/* BALÃO */}
+              {msg.conteudo.trim() !== "" && (
                 <div
                   className={`
                     max-w-[90%]
@@ -612,22 +611,18 @@ export default function ChatTutor({
                         prose-sm
                         prose-slate
                         max-w-none
-                        wrap-break-word
+                        break-words
                       "
                     >
-                      {msg.conteudo.trim() === "" ? (
-                        <span className="text-slate-400 italic">Pensando...</span>
-                      ) : (
-                        <ReactMarkdown
-                          remarkPlugins={[
-                            remarkMath,
-                            remarkGfm,
-                          ]}
-                          rehypePlugins={[rehypeKatex]}
-                        >
-                          {msg.conteudo}
-                        </ReactMarkdown>
-                      )}
+                      <ReactMarkdown
+                        remarkPlugins={[
+                          remarkMath,
+                          remarkGfm,
+                        ]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {msg.conteudo}
+                      </ReactMarkdown>
                     </div>
                   )}
                 </div>
