@@ -133,7 +133,7 @@ export default function DashboardProgresso({
                 font-bold
                 text-slate-800
                 tracking-tight
-                break-words
+                wrap-break-word
               "
             >
               Evolução em {disciplinaAtual.topico}
@@ -517,7 +517,7 @@ export default function DashboardProgresso({
                             text-slate-800
                             text-sm
                             sm:text-base
-                            break-words
+                            wrap-break-word
                             min-w-0
                             flex-1
                           "
@@ -601,7 +601,7 @@ export default function DashboardProgresso({
                                     sm:text-sm
                                     text-slate-500
                                     leading-relaxed
-                                    break-words
+                                    wrap-break-word
                                   "
                                 >
                                   <span className="font-semibold text-slate-600">
