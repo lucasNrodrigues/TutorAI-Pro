@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 
 import ReactMarkdown from "react-markdown";
@@ -20,6 +21,9 @@ import {
   Sparkles,
   BookOpen,
   Terminal,
+  Copy,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 
 import "katex/dist/katex.min.css";
@@ -35,6 +39,392 @@ interface ChatTutorProps {
   onPrimeiraMensagem?: () => void;
 }
 
+/* ============================================================
+   BOTÃO DE COPIAR CÓDIGO
+============================================================ */
+
+function BotaoCopiar({ texto }: { texto: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  async function copiarCodigo() {
+    try {
+      await navigator.clipboard.writeText(texto);
+
+      setCopiado(true);
+
+      setTimeout(() => {
+        setCopiado(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Erro ao copiar código:", error);
+      toast.error("Não foi possível copiar o código.");
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copiarCodigo}
+      className="
+        flex items-center gap-1.5
+        px-2.5 py-1.5
+        rounded-lg
+        text-xs font-medium
+        text-slate-300
+        hover:text-white
+        hover:bg-white/10
+        transition-all
+      "
+      title="Copiar código"
+    >
+      {copiado ? (
+        <>
+          <Check size={14} />
+          Copiado
+        </>
+      ) : (
+        <>
+          <Copy size={14} />
+          Copiar
+        </>
+      )}
+    </button>
+  );
+}
+
+/* ============================================================
+   RENDERIZAÇÃO DO MARKDOWN
+============================================================ */
+
+function MarkdownResposta({ conteudo }: { conteudo: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath, remarkGfm]}
+      rehypePlugins={[rehypeKatex]}
+      components={{
+        /* ----------------------------------------------------
+           PARÁGRAFOS
+        ---------------------------------------------------- */
+
+        p: ({ children }) => (
+          <p className="mb-4 last:mb-0 leading-7 text-slate-700">
+            {children}
+          </p>
+        ),
+
+        /* ----------------------------------------------------
+           TÍTULOS
+        ---------------------------------------------------- */
+
+        h1: ({ children }) => (
+          <h1
+            className="
+              text-xl sm:text-2xl
+              font-bold
+              text-slate-900
+              mt-6 mb-4
+              first:mt-0
+              tracking-tight
+            "
+          >
+            {children}
+          </h1>
+        ),
+
+        h2: ({ children }) => (
+          <h2
+            className="
+              text-lg sm:text-xl
+              font-bold
+              text-slate-900
+              mt-6 mb-3
+              first:mt-0
+              tracking-tight
+            "
+          >
+            {children}
+          </h2>
+        ),
+
+        h3: ({ children }) => (
+          <h3
+            className="
+              text-base sm:text-lg
+              font-semibold
+              text-slate-800
+              mt-5 mb-2
+              first:mt-0
+            "
+          >
+            {children}
+          </h3>
+        ),
+
+        h4: ({ children }) => (
+          <h4
+            className="
+              text-sm sm:text-base
+              font-semibold
+              text-slate-800
+              mt-4 mb-2
+            "
+          >
+            {children}
+          </h4>
+        ),
+
+        /* ----------------------------------------------------
+           LISTAS
+        ---------------------------------------------------- */
+
+        ul: ({ children }) => (
+          <ul
+            className="
+              list-disc
+              pl-6
+              mb-4
+              space-y-1.5
+              text-slate-700
+            "
+          >
+            {children}
+          </ul>
+        ),
+
+        ol: ({ children }) => (
+          <ol
+            className="
+              list-decimal
+              pl-6
+              mb-4
+              space-y-2
+              text-slate-700
+            "
+          >
+            {children}
+          </ol>
+        ),
+
+        li: ({ children }) => (
+          <li className="pl-1 leading-7">
+            {children}
+          </li>
+        ),
+
+        /* ----------------------------------------------------
+           TEXTO FORTE / ÊNFASE
+        ---------------------------------------------------- */
+
+        strong: ({ children }) => (
+          <strong className="font-semibold text-slate-900">
+            {children}
+          </strong>
+        ),
+
+        em: ({ children }) => (
+          <em className="italic text-slate-600">
+            {children}
+          </em>
+        ),
+
+        /* ----------------------------------------------------
+           LINKS
+        ---------------------------------------------------- */
+
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              inline-flex
+              items-center
+              gap-1
+              text-blue-600
+              font-medium
+              hover:text-blue-700
+              hover:underline
+              transition-colors
+            "
+          >
+            {children}
+            <ExternalLink size={12} />
+          </a>
+        ),
+
+        /* ----------------------------------------------------
+           CITAÇÕES
+        ---------------------------------------------------- */
+
+        blockquote: ({ children }) => (
+          <blockquote
+            className="
+              my-4
+              border-l-4
+              border-blue-300
+              bg-blue-50/70
+              rounded-r-xl
+              px-4 py-3
+              text-slate-700
+              italic
+            "
+          >
+            {children}
+          </blockquote>
+        ),
+
+        /* ----------------------------------------------------
+           SEPARADOR
+        ---------------------------------------------------- */
+
+        hr: () => (
+          <hr className="my-6 border-slate-200" />
+        ),
+
+        /* ----------------------------------------------------
+           CÓDIGO
+        ---------------------------------------------------- */
+
+        code: ({
+          className,
+          children,
+        }: {
+          className?: string;
+          children?: ReactNode;
+        }) => {
+          const linguagem =
+            className?.replace("language-", "") || "";
+
+          const codigo = String(children).replace(/\n$/, "");
+
+          const ehBloco = Boolean(className);
+
+          if (!ehBloco) {
+            return (
+              <code
+                className="
+                  px-1.5 py-0.5
+                  rounded-md
+                  bg-slate-100
+                  border border-slate-200
+                  text-[0.9em]
+                  font-mono
+                  text-blue-700
+                "
+              >
+                {children}
+              </code>
+            );
+          }
+
+          return (
+            <div className="my-5 overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-sm">
+              {/* Cabeçalho do código */}
+              <div
+                className="
+                  flex items-center justify-between
+                  px-4 py-2.5
+                  bg-slate-900
+                  border-b border-slate-800
+                "
+              >
+                <div className="flex items-center gap-2">
+                  <Terminal
+                    size={14}
+                    className="text-slate-400"
+                  />
+
+                  <span className="text-xs font-medium text-slate-400">
+                    {linguagem || "código"}
+                  </span>
+                </div>
+
+                <BotaoCopiar texto={codigo} />
+              </div>
+
+              {/* Código */}
+              <pre
+                className="
+                  overflow-x-auto
+                  p-4
+                  text-[13px] sm:text-sm
+                  leading-6
+                  font-mono
+                  text-slate-200
+                "
+              >
+                <code>{codigo}</code>
+              </pre>
+            </div>
+          );
+        },
+
+        /* ----------------------------------------------------
+           TABELAS
+        ---------------------------------------------------- */
+
+        table: ({ children }) => (
+          <div className="my-5 w-full overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full min-w-[500px] border-collapse text-sm">
+              {children}
+            </table>
+          </div>
+        ),
+
+        thead: ({ children }) => (
+          <thead className="bg-slate-100">
+            {children}
+          </thead>
+        ),
+
+        tbody: ({ children }) => (
+          <tbody className="divide-y divide-slate-200 bg-white">
+            {children}
+          </tbody>
+        ),
+
+        tr: ({ children }) => (
+          <tr className="hover:bg-slate-50 transition-colors">
+            {children}
+          </tr>
+        ),
+
+        th: ({ children }) => (
+          <th
+            className="
+              px-4 py-3
+              text-left
+              font-semibold
+              text-slate-800
+              border-b border-slate-200
+            "
+          >
+            {children}
+          </th>
+        ),
+
+        td: ({ children }) => (
+          <td
+            className="
+              px-4 py-3
+              text-slate-700
+              align-top
+            "
+          >
+            {children}
+          </td>
+        ),
+      }}
+    >
+      {conteudo}
+    </ReactMarkdown>
+  );
+}
+
+/* ============================================================
+   COMPONENTE PRINCIPAL
+============================================================ */
+
 export default function ChatTutor({
   conversaId,
   onNovaAvaliacao,
@@ -48,7 +438,7 @@ export default function ChatTutor({
     {
       role: "assistant",
       conteudo:
-        "Olá! Sou seu tutor de IA. Escolha um modo de estudo acima e me diga qual é a sua dúvida de lógica hoje!",
+        "Olá! Sou seu tutor de IA. Escolha um modo de estudo acima e me diga qual é a sua dúvida hoje!",
     },
   ]);
 
@@ -56,7 +446,8 @@ export default function ChatTutor({
   const [loading, setLoading] = useState(false);
   const [modo, setModo] = useState("tutor");
 
-  const mensagensEndRef = useRef<HTMLDivElement>(null);
+  const mensagensEndRef =
+    useRef<HTMLDivElement>(null);
 
   /* ============================================================
      SCROLL AUTOMÁTICO
@@ -73,7 +464,7 @@ export default function ChatTutor({
   }, [mensagens]);
 
   /* ============================================================
-     ENVIAR MENSAGEM (CORRIGIDO COM STREAMING)
+     ENVIAR MENSAGEM
   ============================================================ */
 
   async function enviarMensagem(e: FormEvent) {
@@ -86,15 +477,18 @@ export default function ChatTutor({
     const textoDigitado = input.trim();
     const ehPrimeiraMensagem = mensagens.length <= 1;
 
-    // 1. Adiciona a mensagem do usuário
     const novaMensagem: Mensagem = {
       role: "user",
       conteudo: textoDigitado,
     };
 
-    setMensagens((prev) => [...prev, novaMensagem]);
+    setMensagens((prev) => [
+      ...prev,
+      novaMensagem,
+    ]);
+
     setInput("");
-    setLoading(true); // Liga o indicador de "Pensando..."
+    setLoading(true);
 
     try {
       const response = await fetch(
@@ -114,66 +508,114 @@ export default function ChatTutor({
       );
 
       if (!response.ok || !response.body) {
-        throw new Error("Erro na conexão com o servidor.");
+        throw new Error(
+          "Erro na conexão com o servidor."
+        );
       }
 
-      // 2. Tira os "três pontinhos" pois a resposta vai começar a chegar
       setLoading(false);
 
-      // 3. Adiciona um balão vazio do robô para começar a preencher
-      setMensagens((prev) => [...prev, { role: "assistant", conteudo: "" }]);
+      setMensagens((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          conteudo: "",
+        },
+      ]);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
       let respostaCompleta = "";
 
-      // 4. Lê o texto aos poucos (Streaming)
       while (true) {
-        const { done, value } = await reader.read();
+        const { done, value } =
+          await reader.read();
 
-        if (done) break;
+        if (done) {
+          break;
+        }
 
-        const pedaco = decoder.decode(value, { stream: true });
+        const pedaco = decoder.decode(value, {
+          stream: true,
+        });
+
         respostaCompleta += pedaco;
 
-        // Atualiza apenas a última mensagem do array (que é a do assistente)
         setMensagens((prev) => {
           const novoArray = [...prev];
+
           if (novoArray.length > 0) {
-            novoArray[novoArray.length - 1].conteudo = respostaCompleta;
+            novoArray[
+              novoArray.length - 1
+            ].conteudo = respostaCompleta;
           }
+
           return novoArray;
         });
       }
 
-      // 5. Atualiza o dashboard e o título quando terminar
       onNovaAvaliacao();
+
+      /* --------------------------------------------------------
+         GERA TÍTULO DA CONVERSA
+      -------------------------------------------------------- */
 
       if (ehPrimeiraMensagem) {
         fetch(
           `https://tutorai-backend-km0b.onrender.com/conversas/${conversaId}/gerar-titulo`,
-          { method: "PUT" }
+          {
+            method: "PUT",
+          }
         )
           .then(() => {
-            if (onPrimeiraMensagem) onPrimeiraMensagem();
+            if (onPrimeiraMensagem) {
+              onPrimeiraMensagem();
+            }
           })
-          .catch((err) => console.error("Erro ao gerar título:", err));
+          .catch((err) =>
+            console.error(
+              "Erro ao gerar título:",
+              err
+            )
+          );
       }
     } catch (error) {
-      console.error("Erro no fluxo do chat:", error);
-      toast.error("Opa! A mensagem não pôde ser enviada. Verifique sua conexão.");
-      
-      setInput(textoDigitado); // Devolve o texto caso de erro
+      console.error(
+        "Erro no fluxo do chat:",
+        error
+      );
 
-      // Remove as mensagens quebradas
+      toast.error(
+        "Opa! A mensagem não pôde ser enviada. Verifique sua conexão."
+      );
+
+      setInput(textoDigitado);
+
       setMensagens((prev) => {
         const novoArray = [...prev];
-        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "assistant") {
+
+        if (
+          novoArray.length > 0 &&
+          novoArray[
+            novoArray.length - 1
+          ].role === "assistant"
+        ) {
           novoArray.pop();
         }
-        if (novoArray.length > 0 && novoArray[novoArray.length - 1].role === "user") {
+
+        if (
+          novoArray.length > 0 &&
+          novoArray[
+            novoArray.length - 1
+          ].role === "user"
+        ) {
           novoArray.pop();
         }
+
         return novoArray;
       });
     } finally {
@@ -197,21 +639,41 @@ export default function ChatTutor({
         if (res.ok) {
           const dados = await res.json();
 
-          const mensagensFormatadas: Mensagem[] = dados.map((m: unknown) => {
-            if (typeof m === "object" && m !== null) {
+          const mensagensFormatadas: Mensagem[] =
+            dados.map((m: unknown) => {
+              if (
+                typeof m === "object" &&
+                m !== null &&
+                "role" in m &&
+                "conteudo" in m
+              ) {
+                const mensagem =
+                  m as {
+                    role: string;
+                    conteudo: string;
+                  };
+
+                return {
+                  role:
+                    mensagem.role === "user"
+                      ? "user"
+                      : "assistant",
+                  conteudo:
+                    mensagem.conteudo,
+                };
+              }
+
               return {
-                role: (m as { role: string }).role,
-                conteudo: (m as { conteudo: string }).conteudo,
+                role: "assistant",
+                conteudo:
+                  "Erro ao formatar mensagem.",
               };
-            }
-            return {
-              role: "assistant",
-              conteudo: "Erro ao formatar mensagem.",
-            };
-          });
+            });
 
           if (mensagensFormatadas.length > 0) {
-            setMensagens(mensagensFormatadas);
+            setMensagens(
+              mensagensFormatadas
+            );
           } else {
             setMensagens([
               {
@@ -223,7 +685,11 @@ export default function ChatTutor({
           }
         }
       } catch (error) {
-        console.error("Erro ao carregar histórico:", error);
+        console.error(
+          "Erro ao carregar histórico:",
+          error
+        );
+
         setMensagens([
           {
             role: "assistant",
@@ -244,137 +710,501 @@ export default function ChatTutor({
   ============================================================ */
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 min-w-0 h-full w-full bg-slate-50 overflow-hidden font-sans">
-      
-      {/* CABEÇALHO */}
-      <div className="bg-white px-5 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-200 z-10 shrink-0">
+    <div
+      className="
+        flex flex-col
+        flex-1
+        min-h-0
+        min-w-0
+        h-full
+        w-full
+        bg-slate-50
+        overflow-hidden
+        font-sans
+      "
+    >
+      {/* ======================================================
+          CABEÇALHO
+      ====================================================== */}
+
+      <div
+        className="
+          bg-white
+          px-4 sm:px-6
+          py-3.5
+          flex items-center justify-between
+          border-b border-slate-200
+          z-10
+          shrink-0
+        "
+      >
         <div className="flex items-center gap-3">
+          {/* Avatar */}
           <div className="relative">
-            <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 border border-blue-100">
+            <div
+              className="
+                bg-blue-50
+                p-2.5
+                rounded-xl
+                text-blue-600
+                border border-blue-100
+                shadow-sm
+              "
+            >
               <Bot size={22} />
             </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+
+            <span
+              className="
+                absolute
+                bottom-0
+                right-0
+                w-2.5
+                h-2.5
+                bg-emerald-500
+                rounded-full
+                border-2
+                border-white
+              "
+            />
           </div>
+
+          {/* Informações */}
           <div>
-            <h2 className="text-slate-800 font-semibold text-sm sm:text-base">TutorAI Pro</h2>
+            <h2 className="text-slate-800 font-semibold text-sm sm:text-base">
+              TutorAI Pro
+            </h2>
+
             <p className="text-slate-500 text-xs flex items-center gap-1">
               <Sparkles size={12} />
-              Assistente com RAG
-              <span className="text-emerald-500 font-medium ml-1">• Online</span>
+
+              <span>
+                Assistente com RAG
+              </span>
+
+              <span className="text-emerald-500 font-medium ml-1">
+                • Online
+              </span>
             </p>
           </div>
         </div>
       </div>
 
-      {/* MODOS DE ESTUDO */}
-      <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex gap-2 overflow-x-auto whitespace-nowrap justify-start sm:justify-center shrink-0">
+      {/* ======================================================
+          MODOS DE ESTUDO
+      ====================================================== */}
+
+      <div
+        className="
+          bg-white
+          border-b border-slate-200
+          px-4
+          py-2.5
+          flex gap-2
+          overflow-x-auto
+          whitespace-nowrap
+          justify-start sm:justify-center
+          shrink-0
+          scrollbar-thin
+        "
+      >
+        {/* Modo Tutor */}
         <button
           type="button"
           onClick={() => setModo("tutor")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 ${
-            modo === "tutor"
-              ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
-              : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
-          }`}
+          className={`
+            flex items-center gap-2
+            px-4 py-2
+            rounded-xl
+            text-sm font-semibold
+            transition-all
+            shrink-0
+            ${
+              modo === "tutor"
+                ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+            }
+          `}
         >
-          <Bot size={16} /> Modo Tutor
+          <Bot size={16} />
+          Modo Tutor
         </button>
 
+        {/* Exercícios */}
         <button
           type="button"
-          onClick={() => setModo("exercicios")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 ${
-            modo === "exercicios"
-              ? "bg-amber-50 text-amber-700 border border-amber-200 shadow-sm"
-              : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
-          }`}
+          onClick={() =>
+            setModo("exercicios")
+          }
+          className={`
+            flex items-center gap-2
+            px-4 py-2
+            rounded-xl
+            text-sm font-semibold
+            transition-all
+            shrink-0
+            ${
+              modo === "exercicios"
+                ? "bg-amber-50 text-amber-700 border border-amber-200 shadow-sm"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+            }
+          `}
         >
-          <Terminal size={16} /> Exercícios
+          <Terminal size={16} />
+          Exercícios
         </button>
 
+        {/* Revisão */}
         <button
           type="button"
-          onClick={() => setModo("revisao")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 ${
-            modo === "revisao"
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
-              : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
-          }`}
+          onClick={() =>
+            setModo("revisao")
+          }
+          className={`
+            flex items-center gap-2
+            px-4 py-2
+            rounded-xl
+            text-sm font-semibold
+            transition-all
+            shrink-0
+            ${
+              modo === "revisao"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-transparent"
+            }
+          `}
         >
-          <BookOpen size={16} /> Revisão Rápida
+          <BookOpen size={16} />
+          Revisão Rápida
         </button>
       </div>
 
-      {/* MENSAGENS */}
-      <div className="flex-1 min-h-0 min-w-0 overflow-y-auto p-4 sm:p-6 w-full">
-        <div className="w-full max-w-5xl mx-auto flex flex-col gap-5">
-          {mensagens.map((msg, idx) => (
-            <div key={idx} className={`flex gap-3 w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              {/* ÍCONE DO BOT */}
-              {msg.role === "assistant" && (
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0 mt-1">
-                  <Bot size={18} className="text-white" />
-                </div>
-              )}
+      {/* ======================================================
+          MENSAGENS
+      ====================================================== */}
 
-              {/* BALÃO (AGORA APARECE CORRETAMENTE) */}
-              {msg.conteudo.trim() !== "" && (
-                <div
-                  className={`max-w-[90%] sm:max-w-[80%] lg:max-w-[75%] px-4 sm:px-5 py-3 sm:py-4 text-[14px] sm:text-[15px] leading-relaxed shadow-sm break-words overflow-hidden ${
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
-                      : "bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-tl-sm"
-                  }`}
-                >
-                  {msg.role === "user" ? (
-                    <span className="whitespace-pre-wrap">{msg.conteudo}</span>
-                  ) : (
-                    <div className="prose prose-sm prose-slate max-w-none break-words">
-                      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
-                        {msg.conteudo}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+      <div
+        className="
+          flex-1
+          min-h-0
+          min-w-0
+          overflow-y-auto
+          px-3 sm:px-5
+          py-5 sm:py-7
+          w-full
+          scroll-smooth
+        "
+      >
+        <div
+          className="
+            w-full
+            max-w-4xl
+            mx-auto
+            flex flex-col
+            gap-6
+          "
+        >
+          {mensagens.map((msg, idx) => {
+            const ehUsuario =
+              msg.role === "user";
 
-          {/* LOADING (3 PONTINHOS) */}
-          {loading && (
-            <div className="flex gap-4 w-full justify-start items-center">
-              <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center shrink-0">
-                <Bot size={18} className="text-white" />
+            const mensagemVazia =
+              msg.conteudo.trim() === "";
+
+            return (
+              <div
+                key={idx}
+                className={`
+                  flex
+                  w-full
+                  gap-3
+                  ${
+                    ehUsuario
+                      ? "justify-end"
+                      : "justify-start"
+                  }
+                `}
+              >
+                {/* ==================================================
+                    AVATAR DA IA
+                ================================================== */}
+
+                {!ehUsuario && (
+                  <div
+                    className="
+                      w-8 h-8
+                      sm:w-9 sm:h-9
+                      rounded-full
+                      bg-blue-600
+                      shadow-sm
+                      flex items-center justify-center
+                      shrink-0
+                      mt-1
+                    "
+                  >
+                    <Bot
+                      size={18}
+                      className="text-white"
+                    />
+                  </div>
+                )}
+
+                {/* ==================================================
+                    MENSAGEM DO USUÁRIO
+                ================================================== */}
+
+                {ehUsuario ? (
+                  <div
+                    className="
+                      max-w-[88%]
+                      sm:max-w-[78%]
+                      lg:max-w-[70%]
+                      rounded-2xl
+                      rounded-tr-md
+                      bg-blue-600
+                      text-white
+                      px-4 sm:px-5
+                      py-3
+                      sm:py-3.5
+                      shadow-sm
+                      text-[14px]
+                      sm:text-[15px]
+                      leading-7
+                      break-words
+                      whitespace-pre-wrap
+                    "
+                  >
+                    {msg.conteudo}
+                  </div>
+                ) : (
+                  /* ==================================================
+                     MENSAGEM DA IA
+                  ================================================== */
+
+                  <div
+                    className="
+                      min-w-0
+                      max-w-[calc(100%-3rem)]
+                      sm:max-w-[85%]
+                      lg:max-w-[82%]
+                    "
+                  >
+                    {!mensagemVazia && (
+                      <div
+                        className="
+                          bg-white
+                          border border-slate-200
+                          rounded-2xl
+                          rounded-tl-md
+                          px-4 sm:px-6
+                          py-4 sm:py-5
+                          shadow-sm
+                          text-[14px]
+                          sm:text-[15px]
+                          overflow-hidden
+                        "
+                      >
+                        <div
+                          className="
+                            max-w-none
+                            break-words
+                            text-slate-700
+                          "
+                        >
+                          <MarkdownResposta
+                            conteudo={
+                              msg.conteudo
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Indicador durante streaming */}
+                    {mensagemVazia &&
+                      !loading && (
+                        <div
+                          className="
+                            bg-white
+                            border border-slate-200
+                            rounded-2xl
+                            rounded-tl-md
+                            px-5 py-4
+                            shadow-sm
+                          "
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
+                            <span
+                              className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                              style={{
+                                animationDelay:
+                                  "0.15s",
+                              }}
+                            />
+                            <span
+                              className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+                              style={{
+                                animationDelay:
+                                  "0.3s",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                )}
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex items-center gap-1.5 h-[52px]">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
+            );
+          })}
+
+          {/* ======================================================
+              LOADING
+          ====================================================== */}
+
+          {loading && (
+            <div className="flex gap-3 w-full justify-start items-center">
+              <div
+                className="
+                  w-8 h-8
+                  sm:w-9 sm:h-9
+                  rounded-full
+                  bg-blue-600
+                  shadow-sm
+                  flex items-center justify-center
+                  shrink-0
+                "
+              >
+                <Bot
+                  size={18}
+                  className="text-white"
+                />
+              </div>
+
+              <div
+                className="
+                  bg-white
+                  border border-slate-200
+                  rounded-2xl
+                  rounded-tl-md
+                  px-5 py-4
+                  shadow-sm
+                  flex items-center gap-1.5
+                "
+              >
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" />
+
+                <span
+                  className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
+                  style={{
+                    animationDelay:
+                      "0.15s",
+                  }}
+                />
+
+                <span
+                  className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
+                  style={{
+                    animationDelay:
+                      "0.3s",
+                  }}
+                />
               </div>
             </div>
           )}
 
-          <div ref={mensagensEndRef} className="h-4" />
+          <div
+            ref={mensagensEndRef}
+            className="h-2"
+          />
         </div>
       </div>
 
-      {/* INPUT */}
-      <div className="shrink-0 bg-white px-4 pt-3 pb-4 sm:px-5 sm:pb-5 flex justify-center border-t border-slate-200">
-        <form onSubmit={enviarMensagem} className="w-full max-w-5xl relative flex items-center">
+      {/* ======================================================
+          INPUT
+      ====================================================== */}
+
+      <div
+        className="
+          shrink-0
+          bg-white
+          px-3 sm:px-5
+          pt-3
+          pb-3 sm:pb-5
+          flex justify-center
+          border-t border-slate-200
+        "
+      >
+        <form
+          onSubmit={enviarMensagem}
+          className="
+            w-full
+            max-w-4xl
+            relative
+            flex items-center
+          "
+        >
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) =>
+              setInput(e.target.value)
+            }
             placeholder={`Pergunte ao tutor (Modo ${modo})...`}
-            className="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-5 pr-14 py-3.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-800 text-sm sm:text-base transition-all"
+            className="
+              w-full
+              bg-slate-50
+              border border-slate-300
+              rounded-2xl
+              pl-5
+              pr-14
+              py-3.5
+              sm:py-4
+              focus:outline-none
+              focus:border-blue-500
+              focus:ring-4
+              focus:ring-blue-500/10
+              text-slate-800
+              text-sm sm:text-base
+              placeholder:text-slate-400
+              transition-all
+              shadow-sm
+            "
             disabled={loading}
           />
+
           <button
             type="submit"
-            disabled={loading || !input.trim()}
-            className="absolute right-2 p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
+            disabled={
+              loading || !input.trim()
+            }
+            className="
+              absolute
+              right-2
+              p-2.5
+              bg-blue-600
+              text-white
+              rounded-xl
+              hover:bg-blue-700
+              active:scale-95
+              disabled:bg-slate-300
+              disabled:text-slate-500
+              disabled:cursor-not-allowed
+              transition-all
+              shadow-sm
+              flex items-center
+              justify-center
+            "
+            title="Enviar mensagem"
           >
-            <Send size={18} className={input.trim() && !loading ? "translate-x-px -translate-y-px" : ""} />
+            <Send
+              size={18}
+              className={
+                input.trim() && !loading
+                  ? "translate-x-px -translate-y-px"
+                  : ""
+              }
+            />
           </button>
         </form>
       </div>
