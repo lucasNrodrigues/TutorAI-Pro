@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // ou Plus_Jakarta_Sans
-import "./globals.css";
-import { Toaster } from "sonner";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"] });
+import "./globals.css";
+
+import { Toaster } from "sonner";
+import { ThemeProvider } from "./ThemeProvider";
+
+const inter = Inter({
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "TutorAI Pro",
@@ -16,11 +21,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
-      {/* O body precisa ser w-full e bg-slate-50 para preencher a tela */}
-      <body className={`${inter.className} bg-slate-50 w-full min-h-screen text-slate-800 antialiased`}>
-        <Toaster richColors position="top-right" />
-        {children}
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body
+        className={`${inter.className} w-full min-h-screen bg-slate-50 text-slate-800 antialiased transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100`}
+      >
+        <ThemeProvider>
+          <Toaster
+            richColors
+            position="top-right"
+          />
+
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

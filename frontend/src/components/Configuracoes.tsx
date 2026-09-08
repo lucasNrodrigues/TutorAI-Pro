@@ -1,7 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/static-components */
+
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+
 import {
   Bell,
   Check,
@@ -16,7 +20,9 @@ import {
   Volume2,
   X,
 } from "lucide-react";
+
 import { toast } from "sonner";
+import { useTheme } from "../app/ThemeProvider";
 
 interface ConfiguracoesProps {
   fechar: () => void;
@@ -31,13 +37,29 @@ type AbaConfiguracao =
 interface Preferencias {
   notificacoes: boolean;
   sons: boolean;
-  modoEscuro: boolean;
   mostrarAtividade: boolean;
 }
 
 export default function Configuracoes({
   fechar,
 }: ConfiguracoesProps) {
+  /*
+   * ============================================================
+   * TEMA GLOBAL
+   * ============================================================
+   */
+
+  const {
+    modoEscuro,
+    setModoEscuro,
+  } = useTheme();
+
+  /*
+   * ============================================================
+   * ESTADOS
+   * ============================================================
+   */
+
   const [aba, setAba] =
     useState<AbaConfiguracao>("conta");
 
@@ -45,19 +67,69 @@ export default function Configuracoes({
     useState<Preferencias>({
       notificacoes: true,
       sons: true,
-      modoEscuro: false,
       mostrarAtividade: true,
     });
 
-  const [salvando, setSalvando] = useState(false);
+  const [salvando, setSalvando] =
+    useState(false);
 
-  /* ============================================================
-     FECHAR COM ESC
-  ============================================================ */
+  /*
+   * ============================================================
+   * CARREGAR PREFERÊNCIAS
+   * ============================================================
+   */
 
   useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !salvando) {
+    try {
+      const preferenciasSalvas =
+        localStorage.getItem(
+          "tutorai_preferencias"
+        );
+
+      if (preferenciasSalvas) {
+        const dados =
+          JSON.parse(preferenciasSalvas);
+
+        setPreferencias({
+          notificacoes:
+            typeof dados.notificacoes === "boolean"
+              ? dados.notificacoes
+              : true,
+
+          sons:
+            typeof dados.sons === "boolean"
+              ? dados.sons
+              : true,
+
+          mostrarAtividade:
+            typeof dados.mostrarAtividade ===
+            "boolean"
+              ? dados.mostrarAtividade
+              : true,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao carregar preferências:",
+        error
+      );
+    }
+  }, []);
+
+  /*
+   * ============================================================
+   * FECHAR COM ESC
+   * ============================================================
+   */
+
+  useEffect(() => {
+    function handleEscape(
+      event: KeyboardEvent
+    ) {
+      if (
+        event.key === "Escape" &&
+        !salvando
+      ) {
         fechar();
       }
     }
@@ -75,22 +147,55 @@ export default function Configuracoes({
     };
   }, [fechar, salvando]);
 
-  /* ============================================================
-     SALVAR
-  ============================================================ */
+  /*
+   * ============================================================
+   * ALTERAR TEMA
+   * ============================================================
+   */
+
+  function alterarTema(
+    escuro: boolean
+  ) {
+    setModoEscuro(escuro);
+
+    /*
+     * O ThemeProvider já salva o tema
+     * no localStorage.
+     *
+     * Salvamos também aqui para garantir
+     * que a preferência fique sincronizada.
+     */
+    try {
+      localStorage.setItem(
+        "tutorai_tema",
+        escuro ? "dark" : "light"
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao salvar tema:",
+        error
+      );
+    }
+  }
+
+  /*
+   * ============================================================
+   * SALVAR
+   * ============================================================
+   */
 
   function salvarConfiguracoes() {
     setSalvando(true);
 
     try {
-      /*
-       * Aqui você poderá futuramente enviar
-       * as preferências para o backend.
-       */
-
       localStorage.setItem(
         "tutorai_preferencias",
         JSON.stringify(preferencias)
+      );
+
+      localStorage.setItem(
+        "tutorai_tema",
+        modoEscuro ? "dark" : "light"
       );
 
       toast.success(
@@ -109,9 +214,11 @@ export default function Configuracoes({
     }
   }
 
-  /* ============================================================
-     COMPONENTE SWITCH
-  ============================================================ */
+  /*
+   * ============================================================
+   * COMPONENTE SWITCH
+   * ============================================================
+   */
 
   function Switch({
     ativo,
@@ -139,7 +246,7 @@ export default function Configuracoes({
           ${
             ativo
               ? "bg-blue-600"
-              : "bg-slate-300"
+              : "bg-slate-300 dark:bg-slate-700"
           }
         `}
       >
@@ -166,9 +273,11 @@ export default function Configuracoes({
     );
   }
 
-  /* ============================================================
-     ITEM DO MENU
-  ============================================================ */
+  /*
+   * ============================================================
+   * ITEM DO MENU
+   * ============================================================
+   */
 
   function MenuItem({
     id,
@@ -177,7 +286,7 @@ export default function Configuracoes({
     descricao,
   }: {
     id: AbaConfiguracao;
-    icon: React.ReactNode;
+    icon: ReactNode;
     titulo: string;
     descricao: string;
   }) {
@@ -199,8 +308,8 @@ export default function Configuracoes({
           transition-all
           ${
             ativo
-              ? "bg-blue-50 text-blue-700"
-              : "text-slate-600 hover:bg-slate-50"
+              ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
+              : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
           }
         `}
       >
@@ -216,7 +325,7 @@ export default function Configuracoes({
             ${
               ativo
                 ? "bg-blue-600 text-white shadow-sm"
-                : "bg-slate-100 text-slate-500"
+                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
             }
           `}
         >
@@ -230,15 +339,15 @@ export default function Configuracoes({
               font-semibold
               ${
                 ativo
-                  ? "text-blue-700"
-                  : "text-slate-700"
+                  ? "text-blue-700 dark:text-blue-300"
+                  : "text-slate-700 dark:text-slate-200"
               }
             `}
           >
             {titulo}
           </p>
 
-          <p className="mt-0.5 truncate text-[11px] text-slate-400">
+          <p className="mt-0.5 truncate text-[11px] text-slate-400 dark:text-slate-500">
             {descricao}
           </p>
         </div>
@@ -250,7 +359,7 @@ export default function Configuracoes({
             ${
               ativo
                 ? "text-blue-500"
-                : "text-slate-300"
+                : "text-slate-300 dark:text-slate-600"
             }
           `}
         />
@@ -258,12 +367,18 @@ export default function Configuracoes({
     );
   }
 
+  /*
+   * ============================================================
+   * RENDER
+   * ============================================================
+   */
+
   return (
     <div
       className="
         fixed
         inset-0
-        z-[60]
+        z-60
         flex
         items-center
         justify-center
@@ -276,7 +391,8 @@ export default function Configuracoes({
       "
       onMouseDown={(event) => {
         if (
-          event.target === event.currentTarget &&
+          event.target ===
+            event.currentTarget &&
           !salvando
         ) {
           fechar();
@@ -301,11 +417,14 @@ export default function Configuracoes({
           zoom-in-95
           slide-in-from-bottom-3
           duration-200
+          dark:border-slate-800
+          dark:bg-slate-900
+          dark:shadow-black/40
         "
       >
-        {/* ======================================================
+        {/* =====================================================
             MENU LATERAL
-        ====================================================== */}
+        ===================================================== */}
 
         <aside
           className="
@@ -317,6 +436,8 @@ export default function Configuracoes({
             bg-slate-50/70
             md:flex
             md:flex-col
+            dark:border-slate-800
+            dark:bg-slate-950/60
           "
         >
           {/* LOGO */}
@@ -330,6 +451,7 @@ export default function Configuracoes({
               border-slate-100
               px-5
               py-5
+              dark:border-slate-800
             "
           >
             <div
@@ -350,11 +472,11 @@ export default function Configuracoes({
             </div>
 
             <div>
-              <p className="text-sm font-bold text-slate-800">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
                 Configurações
               </p>
 
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
                 TutorAI Pro
               </p>
             </div>
@@ -373,6 +495,7 @@ export default function Configuracoes({
                 uppercase
                 tracking-wider
                 text-slate-400
+                dark:text-slate-500
               "
             >
               Conta
@@ -395,6 +518,7 @@ export default function Configuracoes({
                 uppercase
                 tracking-wider
                 text-slate-400
+                dark:text-slate-500
               "
             >
               Preferências
@@ -402,27 +526,21 @@ export default function Configuracoes({
 
             <MenuItem
               id="aparencia"
-              icon={
-                <Sun size={17} />
-              }
+              icon={<Sun size={17} />}
               titulo="Aparência"
               descricao="Tema e visual"
             />
 
             <MenuItem
               id="notificacoes"
-              icon={
-                <Bell size={17} />
-              }
+              icon={<Bell size={17} />}
               titulo="Notificações"
               descricao="Alertas e atividades"
             />
 
             <MenuItem
               id="privacidade"
-              icon={
-                <Lock size={17} />
-              }
+              icon={<Lock size={17} />}
               titulo="Privacidade"
               descricao="Controle da sua conta"
             />
@@ -430,7 +548,14 @@ export default function Configuracoes({
 
           {/* RODAPÉ */}
 
-          <div className="border-t border-slate-100 p-4">
+          <div
+            className="
+              border-t
+              border-slate-100
+              p-4
+              dark:border-slate-800
+            "
+          >
             <div
               className="
                 rounded-xl
@@ -438,13 +563,15 @@ export default function Configuracoes({
                 border-blue-100
                 bg-blue-50
                 p-3
+                dark:border-blue-900/60
+                dark:bg-blue-950/40
               "
             >
-              <p className="text-xs font-semibold text-blue-700">
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">
                 TutorAI Pro
               </p>
 
-              <p className="mt-1 text-[10px] leading-relaxed text-blue-500">
+              <p className="mt-1 text-[10px] leading-relaxed text-blue-500 dark:text-blue-400">
                 Personalize sua experiência
                 de estudos.
               </p>
@@ -452,9 +579,9 @@ export default function Configuracoes({
           </div>
         </aside>
 
-        {/* ======================================================
+        {/* =====================================================
             CONTEÚDO
-        ====================================================== */}
+        ===================================================== */}
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* CABEÇALHO */}
@@ -470,10 +597,11 @@ export default function Configuracoes({
               px-5
               py-4
               sm:px-6
+              dark:border-slate-800
             "
           >
             <div>
-              <h2 className="text-lg font-bold text-slate-800">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                 {aba === "conta" &&
                   "Minha conta"}
 
@@ -487,7 +615,7 @@ export default function Configuracoes({
                   "Privacidade"}
               </h2>
 
-              <p className="mt-0.5 text-xs text-slate-400">
+              <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                 Gerencie suas preferências
               </p>
             </div>
@@ -508,6 +636,8 @@ export default function Configuracoes({
                 hover:bg-slate-100
                 hover:text-slate-700
                 disabled:opacity-50
+                dark:hover:bg-slate-800
+                dark:hover:text-slate-200
               "
               aria-label="Fechar configurações"
             >
@@ -526,6 +656,7 @@ export default function Configuracoes({
               border-slate-100
               p-3
               md:hidden
+              dark:border-slate-800
             "
           >
             <button
@@ -544,7 +675,7 @@ export default function Configuracoes({
                 ${
                   aba === "conta"
                     ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-600"
+                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                 }
               `}
             >
@@ -554,7 +685,9 @@ export default function Configuracoes({
 
             <button
               type="button"
-              onClick={() => setAba("aparencia")}
+              onClick={() =>
+                setAba("aparencia")
+              }
               className={`
                 flex
                 shrink-0
@@ -568,7 +701,7 @@ export default function Configuracoes({
                 ${
                   aba === "aparencia"
                     ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-600"
+                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                 }
               `}
             >
@@ -594,7 +727,7 @@ export default function Configuracoes({
                 ${
                   aba === "notificacoes"
                     ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-600"
+                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                 }
               `}
             >
@@ -620,7 +753,7 @@ export default function Configuracoes({
                 ${
                   aba === "privacidade"
                     ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-600"
+                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                 }
               `}
             >
@@ -629,21 +762,31 @@ export default function Configuracoes({
             </button>
           </div>
 
-          {/* CONTEÚDO SCROLLÁVEL */}
+          {/* =================================================
+              CONTEÚDO SCROLLÁVEL
+          ================================================= */}
 
-          <main className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
-            {/* ==================================================
+          <main
+            className="
+              min-h-0
+              flex-1
+              overflow-y-auto
+              p-5
+              sm:p-6
+            "
+          >
+            {/* =================================================
                 CONTA
-            ================================================== */}
+            ================================================= */}
 
             {aba === "conta" && (
               <div className="space-y-5">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     Informações da conta
                   </h3>
 
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                     Gerencie as informações básicas
                     do seu perfil.
                   </p>
@@ -659,6 +802,8 @@ export default function Configuracoes({
                     border-slate-200
                     bg-slate-50/70
                     p-4
+                    dark:border-slate-800
+                    dark:bg-slate-800/50
                   "
                 >
                   <div
@@ -671,17 +816,19 @@ export default function Configuracoes({
                       rounded-full
                       bg-blue-100
                       text-blue-600
+                      dark:bg-blue-950/60
+                      dark:text-blue-400
                     "
                   >
                     <UserRound size={21} />
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                       Perfil do estudante
                     </p>
 
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                       Para alterar nome, foto ou
                       biografia, utilize &ldquo;Meu
                       Perfil&quot;.
@@ -696,15 +843,17 @@ export default function Configuracoes({
                     border-slate-200
                     bg-white
                     p-4
+                    dark:border-slate-800
+                    dark:bg-slate-900
                   "
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-slate-700">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Sessão atual
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                         Sua conta está protegida.
                       </p>
                     </div>
@@ -721,9 +870,12 @@ export default function Configuracoes({
                         text-[10px]
                         font-bold
                         text-emerald-600
+                        dark:bg-emerald-950/50
+                        dark:text-emerald-400
                       "
                     >
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
                       Ativa
                     </div>
                   </div>
@@ -731,18 +883,18 @@ export default function Configuracoes({
               </div>
             )}
 
-            {/* ==================================================
+            {/* =================================================
                 APARÊNCIA
-            ================================================== */}
+            ================================================= */}
 
             {aba === "aparencia" && (
               <div className="space-y-5">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     Aparência
                   </h3>
 
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                     Personalize como o TutorAI
                     aparece para você.
                   </p>
@@ -755,15 +907,18 @@ export default function Configuracoes({
                     rounded-2xl
                     border
                     border-slate-200
+                    bg-white
                     p-4
+                    dark:border-slate-800
+                    dark:bg-slate-900
                   "
                 >
                   <div className="mb-4">
-                    <p className="text-sm font-semibold text-slate-700">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                       Tema
                     </p>
 
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                       Escolha entre modo claro e
                       escuro.
                     </p>
@@ -775,12 +930,7 @@ export default function Configuracoes({
                     <button
                       type="button"
                       onClick={() =>
-                        setPreferencias(
-                          (prev) => ({
-                            ...prev,
-                            modoEscuro: false,
-                          })
-                        )
+                        alterarTema(false)
                       }
                       className={`
                         rounded-xl
@@ -789,29 +939,29 @@ export default function Configuracoes({
                         text-left
                         transition-all
                         ${
-                          !preferencias.modoEscuro
-                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/10"
-                            : "border-slate-200 hover:bg-slate-50"
+                          !modoEscuro
+                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/10 dark:bg-blue-950/40"
+                            : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                         }
                       `}
                     >
                       <div className="mb-3 flex items-center justify-between">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-amber-500 shadow-sm">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-amber-500 shadow-sm dark:bg-slate-800">
                           <Sun size={17} />
                         </div>
 
-                        {!preferencias.modoEscuro && (
+                        {!modoEscuro && (
                           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white">
                             <Check size={12} />
                           </div>
                         )}
                       </div>
 
-                      <p className="text-xs font-bold text-slate-700">
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
                         Claro
                       </p>
 
-                      <p className="mt-1 text-[10px] text-slate-400">
+                      <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
                         Visual claro
                       </p>
                     </button>
@@ -821,12 +971,7 @@ export default function Configuracoes({
                     <button
                       type="button"
                       onClick={() =>
-                        setPreferencias(
-                          (prev) => ({
-                            ...prev,
-                            modoEscuro: true,
-                          })
-                        )
+                        alterarTema(true)
                       }
                       className={`
                         rounded-xl
@@ -835,9 +980,9 @@ export default function Configuracoes({
                         text-left
                         transition-all
                         ${
-                          preferencias.modoEscuro
-                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/10"
-                            : "border-slate-200 hover:bg-slate-50"
+                          modoEscuro
+                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/10 dark:bg-blue-950/40"
+                            : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                         }
                       `}
                     >
@@ -846,57 +991,125 @@ export default function Configuracoes({
                           <Moon size={17} />
                         </div>
 
-                        {preferencias.modoEscuro && (
+                        {modoEscuro && (
                           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white">
                             <Check size={12} />
                           </div>
                         )}
                       </div>
 
-                      <p className="text-xs font-bold text-slate-700">
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
                         Escuro
                       </p>
 
-                      <p className="mt-1 text-[10px] text-slate-400">
+                      <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
                         Visual escuro
                       </p>
                     </button>
                   </div>
                 </div>
+
+                {/* INFORMAÇÃO DO TEMA */}
+
+                <div
+                  className="
+                    flex
+                    items-start
+                    gap-3
+                    rounded-2xl
+                    border
+                    border-blue-100
+                    bg-blue-50
+                    p-4
+                    dark:border-blue-900/50
+                    dark:bg-blue-950/30
+                  "
+                >
+                  {modoEscuro ? (
+                    <Moon
+                      size={18}
+                      className="mt-0.5 shrink-0 text-blue-500"
+                    />
+                  ) : (
+                    <Sun
+                      size={18}
+                      className="mt-0.5 shrink-0 text-amber-500"
+                    />
+                  )}
+
+                  <div>
+                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300">
+                      Tema atual:{" "}
+                      {modoEscuro
+                        ? "Escuro"
+                        : "Claro"}
+                    </p>
+
+                    <p className="mt-1 text-xs leading-relaxed text-blue-600 dark:text-blue-400">
+                      Sua preferência é salva
+                      automaticamente neste
+                      dispositivo.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* ==================================================
+            {/* =================================================
                 NOTIFICAÇÕES
-            ================================================== */}
+            ================================================= */}
 
             {aba === "notificacoes" && (
               <div className="space-y-5">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     Notificações
                   </h3>
 
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                     Escolha quais avisos deseja
                     receber.
                   </p>
                 </div>
 
-                <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+                <div
+                  className="
+                    divide-y
+                    divide-slate-100
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    dark:divide-slate-800
+                    dark:border-slate-800
+                  "
+                >
                   {/* NOTIFICAÇÕES */}
 
                   <div className="flex items-center gap-4 p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <div
+                      className="
+                        flex
+                        h-10
+                        w-10
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-blue-50
+                        text-blue-600
+                        dark:bg-blue-950/50
+                        dark:text-blue-400
+                      "
+                    >
                       <Bell size={18} />
                     </div>
 
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-700">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Notificações
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                         Receber avisos sobre
                         atividades e estudos.
                       </p>
@@ -921,16 +1134,30 @@ export default function Configuracoes({
                   {/* SONS */}
 
                   <div className="flex items-center gap-4 p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                    <div
+                      className="
+                        flex
+                        h-10
+                        w-10
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-violet-50
+                        text-violet-600
+                        dark:bg-violet-950/50
+                        dark:text-violet-400
+                      "
+                    >
                       <Volume2 size={18} />
                     </div>
 
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-700">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Sons
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                         Reproduzir sons para
                         determinadas ações.
                       </p>
@@ -952,35 +1179,59 @@ export default function Configuracoes({
               </div>
             )}
 
-            {/* ==================================================
+            {/* =================================================
                 PRIVACIDADE
-            ================================================== */}
+            ================================================= */}
 
             {aba === "privacidade" && (
               <div className="space-y-5">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     Privacidade
                   </h3>
 
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                     Controle a visibilidade das suas
                     atividades.
                   </p>
                 </div>
 
-                <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+                <div
+                  className="
+                    divide-y
+                    divide-slate-100
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    dark:divide-slate-800
+                    dark:border-slate-800
+                  "
+                >
                   <div className="flex items-center gap-4 p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <div
+                      className="
+                        flex
+                        h-10
+                        w-10
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-emerald-50
+                        text-emerald-600
+                        dark:bg-emerald-950/50
+                        dark:text-emerald-400
+                      "
+                    >
                       <Eye size={18} />
                     </div>
 
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-700">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Mostrar atividade
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                         Permitir que sua atividade
                         acadêmica seja exibida.
                       </p>
@@ -1010,20 +1261,27 @@ export default function Configuracoes({
                     border-amber-200
                     bg-amber-50
                     p-4
+                    dark:border-amber-900/60
+                    dark:bg-amber-950/30
                   "
                 >
                   <div className="flex gap-3">
                     <Shield
                       size={18}
-                      className="mt-0.5 shrink-0 text-amber-600"
+                      className="
+                        mt-0.5
+                        shrink-0
+                        text-amber-600
+                        dark:text-amber-400
+                      "
                     />
 
                     <div>
-                      <p className="text-xs font-bold text-amber-800">
+                      <p className="text-xs font-bold text-amber-800 dark:text-amber-300">
                         Sobre sua privacidade
                       </p>
 
-                      <p className="mt-1 text-xs leading-relaxed text-amber-700">
+                      <p className="mt-1 text-xs leading-relaxed text-amber-700 dark:text-amber-400">
                         Suas informações são
                         utilizadas para
                         personalizar sua
@@ -1036,9 +1294,9 @@ export default function Configuracoes({
             )}
           </main>
 
-          {/* ====================================================
+          {/* =================================================
               RODAPÉ
-          ==================================================== */}
+          ================================================= */}
 
           <footer
             className="
@@ -1053,6 +1311,8 @@ export default function Configuracoes({
               px-5
               py-4
               sm:px-6
+              dark:border-slate-800
+              dark:bg-slate-950/50
             "
           >
             <button
@@ -1073,6 +1333,10 @@ export default function Configuracoes({
                 transition-colors
                 hover:bg-slate-50
                 disabled:opacity-50
+                dark:border-slate-700
+                dark:bg-slate-800
+                dark:text-slate-300
+                dark:hover:bg-slate-700
               "
             >
               Fechar
@@ -1115,6 +1379,7 @@ export default function Configuracoes({
                       border-t-white
                     "
                   />
+
                   Salvando...
                 </>
               ) : (
