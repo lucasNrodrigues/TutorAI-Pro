@@ -39,7 +39,8 @@ os.makedirs("fotos_perfil", exist_ok=True)
 
 app.mount("/fotos", StaticFiles(directory="fotos_perfil"), name="fotos")
 
-@app.get("/")
+
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"status": "API online e integrada ao banco de dados"}
 

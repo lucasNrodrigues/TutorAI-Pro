@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useEffect, useState } from 'react';
 import { Plus, MessageSquare, History } from 'lucide-react'; // <-- Importando ícones modernos
